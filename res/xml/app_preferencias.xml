@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <PreferenceCategory
+        android:title="Remis">
+        <ListPreference
+	    android:title="Número remis"
+	    android:summary="Seleccionar remis"
+	    android:key="remis"
+	    />
+        
+    </PreferenceCategory>
+	<PreferenceCategory 
+	    android:title="Multimedia">
+	    <CheckBoxPreference
+	        android:title="Audio"
+	        android:summary="Silenciar"
+	        android:key="audio"/>
+	    <CheckBoxPreference 
+	        android:title="Pantalla"
+	        android:summary="Mantener encendida siempre"
+	        android:key="pantalla"/>
+	    
+	</PreferenceCategory>
+</PreferenceScreen>

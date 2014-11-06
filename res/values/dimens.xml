@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <dimen name="txtEstandar">12dp</dimen>
+    <dimen name="txtBtnTabSelect">25dp</dimen>
+    <dimen name="txtBtnTabNoSelect">22dp</dimen>
+    
+</resources>

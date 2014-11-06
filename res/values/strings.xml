@@ -1,0 +1,9 @@
+<resources>
+
+    <string name="app_name">SiLAV</string>
+    <string name="libre">LIBRE</string>
+    <string name="ocupado">OCUPADO</string>
+    <string name="inactivo">INACTIVO</string>
+    <string name="icono">icono</string>
+
+</resources>

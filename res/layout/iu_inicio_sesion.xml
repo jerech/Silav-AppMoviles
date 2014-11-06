@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF" >
+
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:orientation="vertical">
+        
+    </LinearLayout>
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="INICIO SESIÓN"
+        android:textColor="@color/blanco"
+        android:paddingLeft="7dp"
+        android:paddingRight="7dp"
+        android:paddingTop="11dp"
+        android:paddingBottom="10dp"
+        android:textSize="20sp"
+        android:background="@color/azul" />
+        
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:orientation="vertical"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="10dp" >
+        <EditText 
+ 	    android:id="@+id/txtUsuario"
+ 	    android:layout_width="match_parent"
+ 	    android:layout_height="wrap_content"
+ 	    android:hint="Usuario"
+ 	    android:textSize="27sp"
+ 	    android:gravity="center_horizontal"
+ 	    android:paddingTop="10sp"
+ 	    android:textColor="#000000"
+ 	    android:background="@color/gris"
+ 	    android:layout_marginTop="5dp"
+ 	    android:layout_marginLeft="7dp"
+ 	    android:layout_marginRight="7dp"/>
+ 	<EditText 
+ 	    android:id="@+id/txtPass"
+ 	    android:layout_width="match_parent"
+ 	    android:layout_height="wrap_content"
+ 	    android:hint="Password"
+ 	    android:inputType="textPassword"
+ 	    android:textSize="27sp"
+ 	    android:gravity="center_horizontal"
+ 	    android:paddingTop="10sp"
+ 	    android:textColor="#000000"
+ 	    android:background="@color/gris"
+ 	    android:layout_marginTop="5dp"
+ 	    android:layout_marginLeft="7dp"
+ 	    android:layout_marginRight="7dp"/>
+
+ 	<Button 
+ 	    android:id="@+id/btnIniciar"
+ 	    android:layout_width="match_parent"
+ 	    android:layout_height="wrap_content"
+ 	    android:textColor="#FFFFFF"
+ 	    android:background="#2E2E2E"
+ 	    android:text="Iniciar"
+ 	    android:textSize="30sp"
+ 	    android:layout_marginTop="15dp"
+ 	    android:layout_marginBottom="15dp"
+ 	    android:layout_marginLeft="7dp"
+ 	    android:layout_marginRight="7dp"/>
+        
+    </LinearLayout>
+ 	
+ 	
+ 	
+</LinearLayout>

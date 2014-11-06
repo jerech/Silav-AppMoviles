@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="interfaz.IU_Principal" >
+
+    <item
+        android:id="@+id/action_settings"
+        android:title="Configuración"
+        android:icon="@drawable/ic_control_panel"
+        app:showAsAction="ifRoom" />
+    <item 
+        android:id="@+id/action_info"
+        android:title="Info"
+        android:icon="@drawable/ic_info_2"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_user"
+        android:title="none"
+        android:checked="false"
+        app:showAsAction="always|withText"/>
+    <item 
+        android:id="@+id/action_salir"
+        android:title="Salir"
+        android:icon="@drawable/ic_closed"
+        app:showAsAction="ifRoom" /> 
+        
+ </menu>
+
