@@ -16,7 +16,7 @@
 package interfaz;
 
 import modelo.Chofer;
-import modelo.Remis;
+import modelo.Movil;
 
 import com.appremises.R;
 
@@ -42,7 +42,7 @@ import android.widget.Toast;
 
 public class PantallaPrincipal extends ActionBarActivity{
 
-	private Tab tabRemis;
+	private Tab tabMovil;
 	private Tab tabMapa;
 	private Tab tabPasajes;
 	private Chofer chofer;
@@ -61,14 +61,14 @@ public class PantallaPrincipal extends ActionBarActivity{
 		TareaAsincronaNotificacion n = new TareaAsincronaNotificacion();
 		n.execute("");
 		
-		Remis remis = new Remis();
+		Movil movil = new Movil();
 		setChofer(new Chofer());
-		getChofer().setRemis(remis);
+		getChofer().setMovil(movil);
 		
 		Bundle extras = getIntent().getExtras();
 		if(extras!=null){
 		    getChofer().setUsuario(extras.getString("usuario"));
-		    getChofer().getRemis().setNumero(extras.getInt("numeroRemis"));	    
+		    getChofer().getMovil().setNumero(extras.getInt("numeroMovil"));	    
 		}		
 		
 		TabsListener<TabMapa> listenerMapa = new TabsListener<TabMapa>(extras,this, "MAPA", TabMapa.class);
@@ -76,10 +76,10 @@ public class PantallaPrincipal extends ActionBarActivity{
 		getTabMapa().setText("MAPA");
 		actionBar.addTab(getTabMapa());
 		
-		TabsListener<TabRemis> listenerRemis = new TabsListener<TabRemis>(extras,this, "REMIS", TabRemis.class);
-		setTabRemis(actionBar.newTab().setTabListener(listenerRemis));
-		getTabRemis().setText("REMIS");
-		actionBar.addTab(getTabRemis());
+		TabsListener<TabMovil> listenerMovil = new TabsListener<TabMovil>(extras,this, "MOVIL", TabMovil.class);
+		setTabMovil(actionBar.newTab().setTabListener(listenerMovil));
+		getTabMovil().setText("MOVIL");
+		actionBar.addTab(getTabMovil());
 		
 		TabsListener<TabPasaje> listenerPasaje = new TabsListener<TabPasaje>(extras,this, "PASAJES", TabPasaje.class);
 		setTabPasajes(actionBar.newTab().setTabListener(listenerPasaje));
@@ -89,7 +89,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 		//Se determina que Tab se muestra al iniciar PantallaPrincipal
 		actionBar.setSelectedNavigationItem(1);
 		
-		setearUbicacionRemis();
+		setearUbicacionMovil();
 		
 		
 			
@@ -161,7 +161,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 	}
 	
 		
-		protected void setearUbicacionRemis(){
+		protected void setearUbicacionMovil(){
 			
 			locManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);		
 	    	locListener = new ListenerUbicacion();   
@@ -242,7 +242,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 			//Se crea la notificacion de la app
 			NotificationCompat.Builder miConstructor = new NotificationCompat.Builder(PantallaPrincipal.this);
 			miConstructor.setSmallIcon(R.drawable.ic_launcher);
-			miConstructor.setContentTitle("AppRemises");
+			miConstructor.setContentTitle("AppMoviles");
 			miConstructor.setContentText("Aplicación encendida");
 			miConstructor.setContentInfo("Ok");
 			miConstructor.setTicker("SiLAV");
@@ -260,12 +260,12 @@ public class PantallaPrincipal extends ActionBarActivity{
 	}
 
 
-	public Tab getTabRemis() {
-		return tabRemis;
+	public Tab getTabMovil() {
+		return tabMovil;
 	}
 
-	public void setTabRemis(Tab tabRemis) {
-		this.tabRemis = tabRemis;
+	public void setTabMovil(Tab tabMovil) {
+		this.tabMovil = tabMovil;
 	}
 
 	public Tab getTabMapa() {

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Locale;
 
 import modelo.Chofer;
-import modelo.Remis;
+import modelo.Movil;
 
 import com.appremises.R;
 
@@ -49,7 +49,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class TabRemis extends Fragment{
+public class TabMovil extends Fragment{
 	
 	private Spinner spinnerEstados;
 	private Chofer chofer;
@@ -58,15 +58,15 @@ public class TabRemis extends Fragment{
 	private ImageButton btnPantalla;
 	private ImageButton btnSos;
 	
-	public TabRemis(){
+	public TabMovil(){
 		setChofer(new Chofer());
-		getChofer().setRemis(new Remis());
+		getChofer().setMovil(new Movil());
 	}
 	
 	public View onCreateView(LayoutInflater inflater, 
 	        ViewGroup container, Bundle savedInstanceState){
 		
-		View viewRoot = inflater.inflate(R.layout.tab_remis, container, false);	
+		View viewRoot = inflater.inflate(R.layout.tab_movil, container, false);	
 		
 		txtCliente = (TextView) viewRoot.findViewById(R.id.txtCliente);
 		btnAltavoz = (ImageButton) viewRoot.findViewById(R.id.btnAltavoz);
@@ -76,7 +76,7 @@ public class TabRemis extends Fragment{
 		Bundle extras = this.getArguments();
 		if(extras!=null){
 		    getChofer().setUsuario(extras.getString("usuario"));
-		    getChofer().getRemis().setNumero(extras.getInt("numeroRemis"));	    
+		    getChofer().getMovil().setNumero(extras.getInt("numeroRemis"));	    
 		}	
 		
 		//Datos de spinner

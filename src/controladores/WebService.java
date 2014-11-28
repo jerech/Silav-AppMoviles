@@ -10,12 +10,12 @@ import org.ksoap2.transport.HttpTransportSE;
 
 import constantes.ConstantesWebService;
 
-import modelo.Remis;;
+import modelo.Movil;;
 
 public class WebService {
 	
-	    public ArrayList<Remis> obtenerRemises(final String usuario){
-		final String nombreFuncionWebService = "obtenerRemises";
+	    public ArrayList<Movil> obtenerMoviles(final String usuario){
+		final String nombreFuncionWebService = "obtenerMoviles";
 		
 		//Se crea un objeto de tipo soap.
 		SoapObject rpc;
@@ -33,7 +33,7 @@ public class WebService {
 		
 		//Para acceder al WS se crea un objeto de tipo HttpTransport
 		HttpTransportSE androidHttpTransport=null;
-		ArrayList<Remis> listaRemises = null;
+		ArrayList<Movil> listaMoviles = null;
 		
 		try{
 			androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL);
@@ -48,15 +48,15 @@ public class WebService {
 			Vector<?> respuestaVector = (Vector<?>) respuestaSoap.getProperty(0);
 			int c = respuestaVector.size();
 			
-			listaRemises = new ArrayList<Remis>(c);
+			listaMoviles = new ArrayList<Movil>(c);
 			for(int i=0;i<c;i++){
-				Remis remisActual = new Remis();
+				Movil movilActual = new Movil();
 				SoapObject s = (SoapObject) respuestaVector.get(i);
-				remisActual.setNumero(Integer.parseInt(s.getProperty("numero").toString()));
-				remisActual.setMarca(s.getProperty("marca").toString());
-				remisActual.setModelo(s.getProperty("modelo").toString());
+				movilActual.setNumero(Integer.parseInt(s.getProperty("numero").toString()));
+				movilActual.setMarca(s.getProperty("marca").toString());
+				movilActual.setModelo(s.getProperty("modelo").toString());
 				
-				listaRemises.add(remisActual);
+				listaMoviles.add(movilActual);
 			}
 			
 			}catch(Exception e){
@@ -64,7 +64,7 @@ public class WebService {
 				}
 		
 		
-		return listaRemises;
+		return listaMoviles;
 	}
 	    
 	    public boolean enviarMensajeSos(String usuario){

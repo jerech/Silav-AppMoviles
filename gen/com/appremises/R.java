@@ -1128,13 +1128,14 @@ containing a value of this type.
         public static final int activity_chooser_view_content=0x7f060025;
         public static final int always=0x7f06000b;
         public static final int beginning=0x7f060011;
-        public static final int btnAltavoz=0x7f060049;
+        public static final int btnAltavoz=0x7f060047;
         public static final int btnIniciar=0x7f060040;
-        public static final int btnPantalla=0x7f060048;
-        public static final int btnSos=0x7f060047;
-        public static final int btn_buscar=0x7f060045;
+        public static final int btnPantalla=0x7f060046;
+        public static final int btnSos=0x7f060045;
+        public static final int btn_buscar=0x7f060050;
         public static final int checkbox=0x7f06002d;
         public static final int collapseActionView=0x7f06000d;
+        public static final int conf=0x7f060055;
         public static final int default_activity_button=0x7f060028;
         public static final int dialog=0x7f06000e;
         public static final int disableHome=0x7f060008;
@@ -1174,22 +1175,22 @@ containing a value of this type.
         public static final int showCustom=0x7f060007;
         public static final int showHome=0x7f060004;
         public static final int showTitle=0x7f060006;
-        public static final int spinnerEstados=0x7f060046;
+        public static final int spinnerEstados=0x7f060044;
         public static final int split_action_bar=0x7f06001e;
         public static final int submit_area=0x7f060039;
         public static final int tabMode=0x7f060002;
-        public static final int textView1=0x7f06004a;
-        public static final int textView2=0x7f06004b;
-        public static final int textView3=0x7f06004d;
-        public static final int textView4=0x7f06004f;
+        public static final int textView1=0x7f060048;
+        public static final int textView2=0x7f060049;
+        public static final int textView3=0x7f06004b;
+        public static final int textView4=0x7f06004d;
         public static final int title=0x7f06002b;
         public static final int top_action_bar=0x7f060020;
-        public static final int txtCliente=0x7f06004e;
-        public static final int txtDireccion=0x7f06004c;
-        public static final int txtHoraSolicitado=0x7f060050;
+        public static final int txtCliente=0x7f06004c;
+        public static final int txtDireccion=0x7f06004a;
+        public static final int txtHoraSolicitado=0x7f06004e;
         public static final int txtPass=0x7f06003f;
         public static final int txtUsuario=0x7f06003e;
-        public static final int txt_busqueda=0x7f060044;
+        public static final int txt_busqueda=0x7f06004f;
         public static final int txt_spinner_lista=0x7f060042;
         public static final int txt_spinner_select=0x7f06003d;
         public static final int up=0x7f060021;
@@ -1252,11 +1253,12 @@ containing a value of this type.
         public static final int support_simple_spinner_dropdown_item=0x7f03001b;
         public static final int tab_host_principal=0x7f03001c;
         public static final int tab_mapa=0x7f03001d;
-        public static final int tab_pasajes=0x7f03001e;
-        public static final int tab_remis=0x7f03001f;
+        public static final int tab_movil=0x7f03001e;
+        public static final int tab_pasajes=0x7f03001f;
     }
     public static final class menu {
         public static final int menu=0x7f0d0000;
+        public static final int menu_inicio=0x7f0d0001;
     }
     public static final class string {
         /**  Content description for the action bar "home" affordance. [CHAR LIMIT=NONE] 

@@ -8,12 +8,12 @@ import android.database.sqlite.SQLiteDatabase.CursorFactory;
 
 public class BBDD extends SQLiteOpenHelper{
 	
-	private static String name = "base_datos";
+	private static String name = "base_datos_1";
 	private static int version = 1;
 	private static CursorFactory cursorFactory = null;
 	
-	protected static String TableRemises = "remises";
-	private String SQLCreateTablaRemises = "CREATE TABLE " + TableRemises +  " (numero INT primary key, marca VARCHAR(60), modelo VARCHAR(60)) ";
+	protected static String TableMoviles = "moviles";
+	private String SQLCreateTablaMoviles = "CREATE TABLE " + TableMoviles +  " (numero INT primary key, marca VARCHAR(60), modelo VARCHAR(60)) ";
 	public BBDD(Context context){
 		super(context, name, cursorFactory, version);
 	}
@@ -21,7 +21,7 @@ public class BBDD extends SQLiteOpenHelper{
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		db.execSQL(SQLCreateTablaRemises);
+		db.execSQL(SQLCreateTablaMoviles);
 		
 	}
 
@@ -31,28 +31,28 @@ public class BBDD extends SQLiteOpenHelper{
 		
 	}
 	
-	public void insertarRemis(int numero, String marca, String modelo){
+	public void insertarMovil(int numero, String marca, String modelo){
 		 SQLiteDatabase db = getWritableDatabase();
 		 if(db!=null){
-		  db.execSQL("INSERT INTO " + TableRemises + 
+		  db.execSQL("INSERT INTO " + TableMoviles + 
 		  " (numero, marca, modelo) " +
 		  " VALUES('" + numero + "', '" + marca + "', '" + modelo +"')");
 		  
 		  db.close();   
 		 }
 		}
-	public Cursor leerRemises(){
+	public Cursor leerMoviles(){
 		 SQLiteDatabase db = getReadableDatabase();
 		  Cursor c = db.rawQuery("SELECT numero AS _id, marca, modelo"+
-				  " FROM "+TableRemises, null); 
+				  " FROM "+TableMoviles, null); 
 		  
 		 return c;
 		}
 	
-	public void borrarTodosLosRemises(){
+	public void borrarTodosLosMoviles(){
 		SQLiteDatabase db = getWritableDatabase();
 		 if(db!=null){
-		  db.execSQL("DELETE FROM "+TableRemises+" WHERE 1");
+		  db.execSQL("DELETE FROM "+TableMoviles+" WHERE 1");
 		  db.close();   
 		 }
 	}

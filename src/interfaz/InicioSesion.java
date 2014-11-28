@@ -18,10 +18,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import modelo.Chofer;
-import modelo.Remis;
+import modelo.Movil;
 
 import com.appremises.R;
 
+import constantes.ConstantesWebService;
 import constantes.Estados;
 import controladores.BBDD;
 import controladores.WebService;
@@ -34,6 +35,9 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -67,16 +71,42 @@ public class InicioSesion extends Activity{
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
 		int num = Integer.parseInt(pref.getString("remis", "0"));
 		
-		Remis remis = new Remis(num);
+		//Se obtiene nombre o ip se sitio con la preferencias de la app
+		String sitio = pref.getString("direccion", "none");
+		ConstantesWebService.URL = "http://"+sitio+"/WebService/servicio.php".trim();
+		ConstantesWebService.NAME_SPACE = "http://"+sitio+"/WebService".trim();
+		
+		Movil movil = new Movil(num);
 		chofer = new Chofer(Estados.LIBRE);
-		getChofer().setRemis(remis);
+		getChofer().setMovil(movil);
 		
 		ListenerClick listenerClick = new ListenerClick();
 		getBtnIniciar().setOnClickListener(listenerClick);	
 		
 	}//fin del método OnCreate
 	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu){
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu_inicio, menu);
+		return true;
+		
+	}
 	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item){
+		switch (item.getItemId()) {
+		case R.id.conf:
+			Intent miIntent = new Intent(InicioSesion.this, Configuracion.class);
+	        miIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+	        startActivity(miIntent);
+			break;
+
+		default:
+			break;
+		}
+		return true;
+	}
 	private class ListenerClick implements OnClickListener{
 
 		@Override
@@ -103,7 +133,7 @@ public class InicioSesion extends Activity{
 		
 		protected Integer doInBackground(String... args){
 			
-			respuesta = getChofer().conectarUsuario()&&sincronizarBDRemises();
+			respuesta = getChofer().conectarUsuario()&&sincronizarBDMoviles();
 			return 1;
 		}
 		
@@ -117,7 +147,7 @@ public class InicioSesion extends Activity{
 				
 				Intent miIntent = new Intent(InicioSesion.this, PantallaPrincipal.class);
 				miIntent.putExtra("usuario", getChofer().getUsuario());
-				miIntent.putExtra("numeroRemis", getChofer().getRemis().getNumero());
+				miIntent.putExtra("numeroMovil", getChofer().getMovil().getNumero());
 				miIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				
 				startActivity(miIntent);
@@ -131,25 +161,24 @@ public class InicioSesion extends Activity{
 	}//Fin Clase Tarea Asincrona
 	
 		
-	private boolean sincronizarBDRemises(){
+	private boolean sincronizarBDMoviles(){
 		boolean respuesta = false;
 		WebService ws = new WebService();
-		ArrayList<Remis> listaRemises = ws.obtenerRemises(getChofer().getUsuario().toString());
+		ArrayList<Movil> listaMoviles = ws.obtenerMoviles(getChofer().getUsuario().toString());
 		
-		if(!listaRemises.isEmpty()){
+		if(!listaMoviles.isEmpty()){
 			respuesta = true;
 			
 			BBDD bd = new BBDD(this);
-			bd.borrarTodosLosRemises();
-			Iterator< Remis> i=listaRemises.iterator();
+			bd.borrarTodosLosMoviles();
+			Iterator< Movil> i=listaMoviles.iterator();
 			while(i.hasNext()){
-				Remis r = i.next();
-				bd.insertarRemis(r.getNumero(), r.getMarca(), r.getModelo());
+				Movil r = i.next();
+				bd.insertarMovil(r.getNumero(), r.getMarca(), r.getModelo());
 			}
 			
 			bd.close();
-		}
-		
+		}		
 		return respuesta;
 	}
 

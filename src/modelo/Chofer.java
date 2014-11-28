@@ -12,7 +12,7 @@ public class Chofer {
 	
 	private String usuario;
 	private String contrasenia;
-	private Remis remis;
+	private Movil movil;
 	private Estados estado;
 	private double ubicacionLatitud;
 	private double ubicacionLongitud;
@@ -43,7 +43,7 @@ public class Chofer {
 		
 		rpc.addProperty("usuario", getUsuario());
 		rpc.addProperty("contrasenia", getContrasenia());
-		rpc.addProperty("num_remis", getRemis().getNumero());
+		rpc.addProperty("num_movil", getMovil().getNumero());
 		rpc.addProperty("estado",getEstado().toString());
 		SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
 		envelope.bodyOut=rpc;
@@ -81,7 +81,7 @@ public class Chofer {
 		rpc = new SoapObject(ConstantesWebService.NAME_SPACE, nombreFuncionWebService);
 		
 		rpc.addProperty("usuario", getUsuario().toString());
-		rpc.addProperty("num_remis", getRemis().getNumero());
+		rpc.addProperty("num_movil", getMovil().getNumero());
 
 		SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
 		envelope.bodyOut=rpc;
@@ -205,12 +205,12 @@ public boolean actualizarEstado(){
 		this.contrasenia = contrasenia;
 	}
 
-	public Remis getRemis() {
-		return remis;
+	public Movil getMovil() {
+		return movil;
 	}
 
-	public void setRemis(Remis remis) {
-		this.remis = remis;
+	public void setMovil(Movil movil) {
+		this.movil = movil;
 	}
 
 	public Estados getEstado() {

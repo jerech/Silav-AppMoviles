@@ -24,7 +24,7 @@ public class Configuracion extends PreferenceActivity{
 		
 		//Llenamos el listpreference con los numeros de remises
 		db = new BBDD(this);
-		c = db.leerRemises();
+		c = db.leerMoviles();
 		startManagingCursor(c);
 		
 		String[] entries = new String[c.getCount()];

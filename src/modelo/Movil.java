@@ -1,15 +1,15 @@
 package modelo;
 
-public class Remis {
+public class Movil {
 	
 	private int numero;
 	private String marca;
 	private String modelo;
 	
-	public Remis(){
+	public Movil(){
 		
 	}
-	public Remis(int numero){
+	public Movil(int numero){
 		this.setNumero(numero);
 	}
 	
