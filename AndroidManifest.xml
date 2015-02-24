@@ -6,12 +6,20 @@
 
     <uses-sdk
         android:minSdkVersion="8"
-        android:targetSdkVersion="20" />
+        android:targetSdkVersion="21" />
     <uses-permission android:name="android.permission.INTERNET"
         />
     <uses-permission  android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission  android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+ 
+	<permission android:name="controladores.permission.C2D_MESSAGE"
+	     android:protectionLevel="signature" />
+	
+	
 
     <application
         android:allowBackup="true"
@@ -24,7 +32,6 @@
             android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             </activity>
@@ -36,6 +43,21 @@
             android:name="interfaz.Configuracion"
             android:label="Configuración">    
         </activity>
+        
+         
+        
+        <!-- Receiver GCM -->
+	    <receiver
+	        android:name="interfaz.GcmBroadcastReceiver"
+	        android:permission="com.google.android.c2dm.permission.SEND" >
+	        <intent-filter>
+	            <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+            	<action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+            	<category android:name="com.appremises." />
+	        </intent-filter>
+	    </receiver>
+        
+        <service android:name="interfaz.GcmIntentService" />
     </application>
 
 </manifest>

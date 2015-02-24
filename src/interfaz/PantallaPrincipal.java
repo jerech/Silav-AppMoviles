@@ -20,8 +20,11 @@ import modelo.Movil;
 
 import com.appremises.R;
 
+
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -49,6 +52,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 	private LocationListener locListener;
 	private LocationManager locManager;
 	final int NUM_NOTIFICACION_APP = 1; 
+
 	
 
 	@Override
@@ -57,7 +61,8 @@ public class PantallaPrincipal extends ActionBarActivity{
 	
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-				
+		
+		
 		TareaAsincronaNotificacion n = new TareaAsincronaNotificacion();
 		n.execute("");
 		
@@ -70,6 +75,8 @@ public class PantallaPrincipal extends ActionBarActivity{
 		    getChofer().setUsuario(extras.getString("usuario"));
 		    getChofer().getMovil().setNumero(extras.getInt("numeroMovil"));	    
 		}		
+		
+		
 		
 		TabsListener<TabMapa> listenerMapa = new TabsListener<TabMapa>(extras,this, "MAPA", TabMapa.class);
 		setTabMapa(actionBar.newTab().setTabListener(listenerMapa));
@@ -88,11 +95,14 @@ public class PantallaPrincipal extends ActionBarActivity{
 		
 		//Se determina que Tab se muestra al iniciar PantallaPrincipal
 		actionBar.setSelectedNavigationItem(1);
-		
 		setearUbicacionMovil();
 		
-		
 			
+	}
+	
+	@Override
+	protected void onPause() {
+		super.onPause();
 	}
 	
 	@Override
@@ -136,8 +146,10 @@ public class PantallaPrincipal extends ActionBarActivity{
 	    case R.id.action_info:
 	        Toast.makeText(getApplicationContext(), "INFO", Toast.LENGTH_SHORT).show();
 	        return true;	
-	    case R.id.action_salir:   	
-	        finish();
+	    case R.id.action_salir:
+	    	TareaAsincronaDesconectarChofer tareaAsincrona;	
+			tareaAsincrona = new TareaAsincronaDesconectarChofer(PantallaPrincipal.this);
+			tareaAsincrona.execute("");  
 	        return true;
 	    default:
 	        return super.onOptionsItemSelected(item);
@@ -148,16 +160,14 @@ public class PantallaPrincipal extends ActionBarActivity{
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
-		super.onDestroy();
-		
-		TareaAsincronaDesconectarChofer tareaAsincrona;
-		
-		tareaAsincrona = new TareaAsincronaDesconectarChofer();
-		tareaAsincrona.execute("");
-		
-        locManager.removeUpdates(locListener);
+		locManager.removeUpdates(locListener);
         NotificationManager gestorNotificacion = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		gestorNotificacion.cancel(NUM_NOTIFICACION_APP);
+		Intent miIntent = new Intent(PantallaPrincipal.this, InicioSesion.class);
+		miIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(miIntent);
+		super.onDestroy();
+		
 	}
 	
 		
@@ -220,6 +230,18 @@ public class PantallaPrincipal extends ActionBarActivity{
 	
 	private class TareaAsincronaDesconectarChofer extends AsyncTask<String, Void, Object>{
 		
+		private ProgressDialog progressDialog;
+		
+		public TareaAsincronaDesconectarChofer(Activity activity){
+			
+            this.progressDialog = new ProgressDialog(activity);
+            this.progressDialog.setTitle("Desconectando.");
+            this.progressDialog.setMessage("La sesión se está cerrando.");
+            if(!this.progressDialog.isShowing()){
+                this.progressDialog.show();
+            }
+		}
+	
 		protected Integer doInBackground(String... args){
 			boolean desconectado = false;
 			while(!desconectado){
@@ -228,6 +250,16 @@ public class PantallaPrincipal extends ActionBarActivity{
 			
 			return 1;
 		}
+		
+		protected void onPostExecute(Object result){
+					
+			//Se elimina la pantalla de por favor esperar
+			this.progressDialog.dismiss();		
+			
+			finish();
+			
+		}		
+					
 	}
 	
 	private class TareaAsincronaNotificacion extends AsyncTask<String, Void, Object>{
@@ -283,8 +315,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 	public void setTabPasajes(Tab tabPasajes) {
 		this.tabPasajes = tabPasajes;
 	}
-
-		
+	
 	public Chofer getChofer() {
 		return chofer;
 	}
@@ -292,5 +323,6 @@ public class PantallaPrincipal extends ActionBarActivity{
 	public void setChofer(Chofer chofer) {
 		this.chofer = chofer;
 	}
+	
 		
 }

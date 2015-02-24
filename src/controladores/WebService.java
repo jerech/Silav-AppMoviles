@@ -103,5 +103,43 @@ public class WebService {
 			
 			return respuesta;
 	    }
+	    
+	    public boolean enviarClaveGCM(String usuario,String claveGCM){
+	    	final String nombreFuncionWebService = "asignarClaveGCM";
+			boolean respuesta = false;
+			//Se crea un objeto de tipo soap.
+			SoapObject rpc;
+			rpc = new SoapObject(ConstantesWebService.NAME_SPACE, nombreFuncionWebService);
+			
+			rpc.addProperty("usuario", usuario);
+			rpc.addProperty("claveGCM", claveGCM);
+
+			SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+			envelope.bodyOut=rpc;
+			
+			//Se establece si el WS esta hecho en .net
+			envelope.dotNet=false;
+					
+			envelope.encodingStyle=SoapSerializationEnvelope.XSD;
+			
+			//Para acceder al WS se crea un objeto de tipo HttpTransport
+			HttpTransportSE androidHttpTransport=null;
+			try{
+				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL);
+				androidHttpTransport.debug=true;
+						
+				//Se llama al servicio web
+				androidHttpTransport.call(ConstantesWebService.NAME_SPACE + "/"+nombreFuncionWebService, envelope);
+		
+				//guardar la respuesta en una variable
+				respuesta=(Boolean) envelope.getResponse();
+				
+				}catch(Exception e){
+						System.out.println(e.getMessage());
+						respuesta=false;
+					}
+			
+			return respuesta;
+	    }
 	
 }

@@ -188,6 +188,8 @@ public boolean actualizarEstado(){
 		return respuesta;
 		
 	}
+	
+	
 
 	public String getUsuario() {
 		return usuario;
@@ -237,6 +239,8 @@ public boolean actualizarEstado(){
 		this.ubicacionLongitud = ubicacionLongitud;
 	}
 
+	
+	
 	
 
 }
