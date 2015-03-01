@@ -8,5 +8,7 @@
 	<classpathentry exported="true" kind="lib" path="libs/slf4j-android-1.5.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="libs/osmdroid-android-3.0.2.jar"/>
 	<classpathentry exported="true" kind="lib" path="/home/jeremias/Documentos/RepositorioSilav/AppMoviles/libs/ksoap2-android-assembly-2.5.8-jar-with-dependencies.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/jeremias/Documentos/RepositorioSilav/AppMoviles/libs/google-play-services.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/jeremias/Documentos/RepositorioSilav/AppMoviles/libs/gcm.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

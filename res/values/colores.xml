@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="verde">#14892D</color>
-    <color name="blanco">#ffffff</color>
+    <color name="blanco">#FFFFFF</color>
     <color name="gris">#85BDBDBD</color>
     <color name="negro">#000000</color>
     <color name="azul">#2E8EEE</color>
     <color name="azul_oscuro">#2370BD</color>
     <color name="verde_libre">#51DC41</color>
     <color name="rojo_ocupado">#EB2B16</color>
+    <color name="negro_claro">#2E2E2E</color>
     
 </resources>

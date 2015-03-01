@@ -15,24 +15,39 @@
 
 package interfaz;
 
-import modelo.Chofer;
+import java.util.concurrent.TimeUnit;
+
+import modelo.Pasaje;
+import modelo.Usuario;
 import modelo.Movil;
 
 import com.appremises.R;
 
+import controladores.GcmIntentService;
+import controladores.WebService;
+import dao.PasajeDAO;
 
+
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBar;
@@ -40,7 +55,12 @@ import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class PantallaPrincipal extends ActionBarActivity{
@@ -48,11 +68,15 @@ public class PantallaPrincipal extends ActionBarActivity{
 	private Tab tabMovil;
 	private Tab tabMapa;
 	private Tab tabPasajes;
-	private Chofer chofer;
+	Spinner spinnerEstados;
+	TextView txtDireccion;
+	TextView txtCliente;
+	TextView txtHora;
+	private Usuario usuario;
 	private LocationListener locListener;
 	private LocationManager locManager;
 	final int NUM_NOTIFICACION_APP = 1; 
-
+	TextView txtCronometro;
 	
 
 	@Override
@@ -62,19 +86,22 @@ public class PantallaPrincipal extends ActionBarActivity{
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		
-		
 		TareaAsincronaNotificacion n = new TareaAsincronaNotificacion();
 		n.execute("");
 		
 		Movil movil = new Movil();
-		setChofer(new Chofer());
-		getChofer().setMovil(movil);
+		setUsuario(new Usuario());
+		getUsuario().setMovil(movil);
 		
 		Bundle extras = getIntent().getExtras();
 		if(extras!=null){
-		    getChofer().setUsuario(extras.getString("usuario"));
-		    getChofer().getMovil().setNumero(extras.getInt("numeroMovil"));	    
+		    getUsuario().getMovil().setNumero(extras.getInt("numeroMovil"));	    
 		}		
+		SharedPreferences pref = getSharedPreferences(
+				InicioSesion.NOMBRE_SHARED_PREFERENCE,
+				Context.MODE_PRIVATE);
+		String usuarioGuardado = pref.getString(InicioSesion.PROPERTY_USER, "none");
+		getUsuario().setUsuario(usuarioGuardado);
 		
 		
 		
@@ -95,8 +122,15 @@ public class PantallaPrincipal extends ActionBarActivity{
 		
 		//Se determina que Tab se muestra al iniciar PantallaPrincipal
 		actionBar.setSelectedNavigationItem(1);
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setearUbicacionMovil();
 		
+		
+		//Registramos en intent service para  poder recibir la respuesta en el broadcast receiver
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(GcmIntentService.ACTION_PASAJE);
+		PasajeReceiver rcv = new PasajeReceiver();
+		registerReceiver(rcv, filter);
 			
 	}
 	
@@ -130,7 +164,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.menu, menu);
 		MenuItem item = menu.getItem(2);
-		item.setTitle(getChofer().getUsuario());  
+		item.setTitle(getUsuario().getUsuario());  
 		
 		return true;
 	}
@@ -163,9 +197,6 @@ public class PantallaPrincipal extends ActionBarActivity{
 		locManager.removeUpdates(locListener);
         NotificationManager gestorNotificacion = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		gestorNotificacion.cancel(NUM_NOTIFICACION_APP);
-		Intent miIntent = new Intent(PantallaPrincipal.this, InicioSesion.class);
-		miIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		startActivity(miIntent);
 		super.onDestroy();
 		
 	}
@@ -182,16 +213,13 @@ public class PantallaPrincipal extends ActionBarActivity{
 	
 
 	private class ListenerUbicacion implements LocationListener{
-		int c=0;
 
 		@Override
 		public void onLocationChanged(Location location) {
 			TareaAsincronaUbicacion nuevaTareaAsincrona = new TareaAsincronaUbicacion();
-			getChofer().setUbicacionLatitud(location.getLatitude());
-			getChofer().setUbicacionLongitud(location.getLongitude());
+			getUsuario().setUbicacionLatitud(location.getLatitude());
+			getUsuario().setUbicacionLongitud(location.getLongitude());
 			nuevaTareaAsincrona.execute("");
-			c++;
-			Toast.makeText(getApplicationContext(), "Se envia ubicación:"+c,Toast.LENGTH_SHORT).show();
 			
 		}
 
@@ -218,11 +246,11 @@ public class PantallaPrincipal extends ActionBarActivity{
 	
 	private class TareaAsincronaUbicacion extends AsyncTask<String, Void, Object>{
 			
-			
+			WebService ws;
 			@Override
 			protected Integer doInBackground(String... args){
-				
-				getChofer().actualizarUbicacion();
+				ws = new WebService();
+				ws.actualizarUbicacion(getUsuario());
 				
 				return 1;
 			}
@@ -231,6 +259,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 	private class TareaAsincronaDesconectarChofer extends AsyncTask<String, Void, Object>{
 		
 		private ProgressDialog progressDialog;
+		private WebService ws;
 		
 		public TareaAsincronaDesconectarChofer(Activity activity){
 			
@@ -243,9 +272,10 @@ public class PantallaPrincipal extends ActionBarActivity{
 		}
 	
 		protected Integer doInBackground(String... args){
+			ws = new WebService();
 			boolean desconectado = false;
 			while(!desconectado){
-				desconectado = getChofer().desconectarUsuario();
+				desconectado = ws.desconectarUsuario(getUsuario());
 			}
 			
 			return 1;
@@ -290,6 +320,122 @@ public class PantallaPrincipal extends ActionBarActivity{
 
 	
 	}
+	
+	public class PasajeReceiver extends BroadcastReceiver {
+		 
+	    @Override
+	    public void onReceive(Context context, Intent intent) {
+	        if(intent.getAction().equals(GcmIntentService.ACTION_PASAJE)) {
+	        	Bundle extras = intent.getExtras();
+	            mostrarMensajePasaje(extras.getString("direccion"), extras.getString("cliente"), extras.getInt("id"), extras.getString("fecha"));
+	        
+	        }
+	    }
+	}
+	
+	private void mostrarMensajePasaje(String direccion, String cliente, int id, String fecha){	
+		// custom dialog
+		final Pasaje pasaje = new Pasaje();
+		pasaje.setId(id);
+		pasaje.setFecha(fecha);
+		pasaje.setCliente(cliente);
+		pasaje.setDireccion(direccion);
+		
+		final Dialog dialog = new Dialog(PantallaPrincipal.this);
+		dialog.setContentView(R.layout.dialogo_pasaje);
+		dialog.setTitle("Aceptar Pasaje");
+ 
+			// set the custom dialog components - text, image and button
+			TextView txtIdDialog = (TextView) dialog.findViewById(R.id.txt_dialog_id);
+			txtIdDialog.setText(pasaje.getId()+"");
+			TextView txtDireccionDialog = (TextView) dialog.findViewById(R.id.txt_dialog_direccion);
+			txtDireccionDialog.setText(pasaje.getDireccion());
+			TextView txtClienteDialog = (TextView) dialog.findViewById(R.id.txt_dialog_cliente);
+			txtClienteDialog.setText(pasaje.getCliente());
+ 
+			Button btnSi = (Button) dialog.findViewById(R.id.btn_dialog_si);
+			Button btnNo = (Button) dialog.findViewById(R.id.btn_dialog_no);
+			// if button is clicked, close the custom dialog
+			btnSi.setOnClickListener(new OnClickListener() {
+			
+				@Override
+				public void onClick(View arg0) {
+					PasajeDAO pasajeDao = new PasajeDAO(getApplicationContext());
+					pasajeDao.nuevo(pasaje);
+					txtDireccion = (TextView) findViewById(R.id.txtDireccion);
+					txtCliente = (TextView) findViewById(R.id.txtCliente);
+					txtHora = (TextView) findViewById(R.id.txtHoraSolicitado);
+					spinnerEstados = (Spinner) findViewById(R.id.spinnerEstados);
+					
+					txtDireccion.setText(pasaje.getDireccion());
+					TabMovil.direccionPasaje = pasaje.getDireccion();
+					
+					txtCliente.setText(pasaje.getCliente());
+					TabMovil.clientePasaje = pasaje.getCliente();
+					
+					String hora = pasaje.getFecha().split(" ")[1];		
+					txtHora.setText(hora);
+					TabMovil.horaPasaje = hora;
+						
+					spinnerEstados.setSelection(1);
+					spinnerEstados.setEnabled(false);
+				
+					txtCronometro = (TextView) findViewById(R.id.cronometro);
+					txtCronometro.setText("00:03:00");
+					final CounterClass timer = new CounterClass(180000,1000); 
+					timer.start();
+					
+					dialog.dismiss();
+					
+				}
+			});
+			
+			btnNo.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View v) {
+					dialog.dismiss();
+					
+				}
+			});
+ 
+			dialog.show();
+	}
+	
+	
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	@SuppressLint("DefaultLocale")
+	public class CounterClass extends CountDownTimer {  
+         public CounterClass(long millisInFuture, long countDownInterval) {  
+              super(millisInFuture, countDownInterval);  
+         }  
+         @Override  
+        public void onFinish() {  
+          txtCronometro.setText("");  
+          spinnerEstados.setEnabled(true);
+          spinnerEstados.setSelection(0);
+          txtCliente.setText("");
+          txtDireccion.setText("");
+          txtHora.setText("");
+          TabMovil.clientePasaje = null;
+          TabMovil.direccionPasaje = null;
+          TabMovil.horaPasaje = null;
+          TabMovil.cronometro = null;
+          
+        }  
+       
+         @Override  
+         public void onTick(long millisUntilFinished) {  
+               long millis = millisUntilFinished;  
+                String hms = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),  
+                TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),  
+                TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));   
+                txtCronometro.setText(hms);  
+                TabMovil.cronometro = hms;
+         }  
+    }  
+
+
 
 
 	public Tab getTabMovil() {
@@ -316,12 +462,12 @@ public class PantallaPrincipal extends ActionBarActivity{
 		this.tabPasajes = tabPasajes;
 	}
 	
-	public Chofer getChofer() {
-		return chofer;
+	public Usuario getUsuario() {
+		return usuario;
 	}
 
-	public void setChofer(Chofer chofer) {
-		this.chofer = chofer;
+	public void setUsuario(Usuario usuario) {
+		this.usuario = usuario;
 	}
 	
 		

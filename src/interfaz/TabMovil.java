@@ -19,8 +19,9 @@ package interfaz;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
-import modelo.Chofer;
+import modelo.Usuario;
 import modelo.Movil;
 
 import com.appremises.R;
@@ -30,9 +31,11 @@ import controladores.WebService;
 
 import adaptadores.Estado;
 import adaptadores.SpinnerEstados;
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.Fragment;
@@ -47,19 +50,25 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class TabMovil extends Fragment{
 	
 	private Spinner spinnerEstados;
-	private Chofer chofer;
+	private Usuario usuario;
 	private TextView txtCliente;
+	private TextView txtDireccion;
+	private TextView txtHora;
+	private TextView txtCronometro;
 	private ImageButton btnAltavoz;
 	private ImageButton btnPantalla;
 	private ImageButton btnSos;
+	public static String horaPasaje = null;
+    public static String direccionPasaje = null;
+	public static String clientePasaje = null;
+	public static String cronometro = null;
 	
 	public TabMovil(){
-		setChofer(new Chofer());
+		setChofer(new Usuario());
 		getChofer().setMovil(new Movil());
 	}
 	
@@ -69,15 +78,41 @@ public class TabMovil extends Fragment{
 		View viewRoot = inflater.inflate(R.layout.tab_movil, container, false);	
 		
 		txtCliente = (TextView) viewRoot.findViewById(R.id.txtCliente);
+		txtDireccion = (TextView) viewRoot.findViewById(R.id.txtDireccion);
+		txtHora = (TextView) viewRoot.findViewById(R.id.txtHoraSolicitado);
 		btnAltavoz = (ImageButton) viewRoot.findViewById(R.id.btnAltavoz);
 		btnPantalla = (ImageButton) viewRoot.findViewById(R.id.btnPantalla);
 		btnSos = (ImageButton) viewRoot.findViewById(R.id.btnSos);
+		setSpinnerEstados( (Spinner) viewRoot.findViewById(R.id.spinnerEstados));
+		
+		if(horaPasaje != null){
+			txtHora.setText(horaPasaje);
 			
+		}
+		if(clientePasaje != null){
+			txtCliente.setText(clientePasaje);
+			getSpinnerEstados().setSelection(1);
+			getSpinnerEstados().setEnabled(false);
+		}
+		if(direccionPasaje != null){
+			txtDireccion.setText(direccionPasaje);
+		}
+		
+		if(cronometro != null){
+			txtCronometro = (TextView) viewRoot.findViewById(R.id.cronometro);
+			txtCronometro.setText(cronometro);
+			String[] tiempo = cronometro.split(":");
+			int minutos = Integer.parseInt(tiempo[1]);
+			int segundos = Integer.parseInt(tiempo[2])+(minutos*60);
+			final CounterClass timer = new CounterClass(1000*segundos,1000); 
+			timer.start();
+		}
 		Bundle extras = this.getArguments();
 		if(extras!=null){
 		    getChofer().setUsuario(extras.getString("usuario"));
 		    getChofer().getMovil().setNumero(extras.getInt("numeroRemis"));	    
 		}	
+		
 		
 		//Datos de spinner
 		List<Estado> itemsDeSpinner = new ArrayList<Estado>(3);
@@ -90,7 +125,7 @@ public class TabMovil extends Fragment{
 		itemsDeSpinner.add(estadoOcupado);
 		itemsDeSpinner.add(estadoDesconectado);
 		
-		setSpinnerEstados( (Spinner) viewRoot.findViewById(R.id.spinnerEstados));
+		
 		getSpinnerEstados().setAdapter(adaptadorSpinner);
 		
 		ListenerItemSeleccionado miListenerItemSeleccionado = new ListenerItemSeleccionado();
@@ -113,9 +148,9 @@ public class TabMovil extends Fragment{
 
 		TareaAsincronaActualizarEstado tareaAsincrona;
 		
+		
         @Override
-        public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id)
-        {
+        public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id){
         
         	switch(position){
 	        	case 0:
@@ -123,23 +158,20 @@ public class TabMovil extends Fragment{
 	        				getChofer().setEstado(Estados.LIBRE);
 	            			tareaAsincrona = new TareaAsincronaActualizarEstado();
 	            			tareaAsincrona.execute("");
-	            			Toast.makeText(adapterView.getContext(), "Se a cambiado el Estado a 'LIBRE'.", Toast.LENGTH_SHORT).show();
 	        			}
 	        		break;
 	        	case 1:
 	        			if(getChofer().getEstado() != Estados.OCUPADO){
 	        				getChofer().setEstado(Estados.OCUPADO);
 	            			tareaAsincrona = new TareaAsincronaActualizarEstado();
-	            			tareaAsincrona.execute("");
-		            		Toast.makeText(adapterView.getContext(), "Se a cambiado el Estado a 'OCUPADO'.", Toast.LENGTH_SHORT).show();
+	            			tareaAsincrona.execute("");         		
 	        			}
 	            	break;
 	        	case 2:
 	        			if(getChofer().getEstado() != Estados.INACTIVO){
 	        				getChofer().setEstado(Estados.INACTIVO);
 	            			tareaAsincrona = new TareaAsincronaActualizarEstado();
-	            			tareaAsincrona.execute("");
-		            		Toast.makeText(adapterView.getContext(), "Se a cambiado el Estado a 'INACTIVO'.", Toast.LENGTH_SHORT).show();
+	            			tareaAsincrona.execute("");	            		
 	        			}
 	            	break;
         	}
@@ -154,11 +186,17 @@ public class TabMovil extends Fragment{
 	}
 	
 	private class TareaAsincronaActualizarEstado extends AsyncTask<String, Void, Object>{
-			
+			private WebService ws;
+			boolean respuesta;
 			protected Integer doInBackground(String... args){
-				getChofer().actualizarEstado();
+				ws = new WebService();
+				respuesta = ws.actualizarEstadoUsuario(getChofer());
 				
 				return 1;
+			}
+			
+			protected void onPostExecute(Object result){
+				Log.d("REspuesta WebService:", respuesta+"");
 			}
 	}
 
@@ -235,7 +273,7 @@ public class TabMovil extends Fragment{
 			
 		}
 		private void speakOut(){
-			String texto = txtCliente.getText().toString();
+			String texto = "La dirección del pasaje es "+direccionPasaje;
 			String textoVacio = "No hay pasaje.";
 			
 				if(!texto.equalsIgnoreCase("")){
@@ -247,6 +285,36 @@ public class TabMovil extends Fragment{
 		
 	
 	}
+	
+	@SuppressLint({ "DefaultLocale", "NewApi" })
+	public class CounterClass extends CountDownTimer {  
+         public CounterClass(long millisInFuture, long countDownInterval) {  
+              super(millisInFuture, countDownInterval);  
+         }  
+         @Override  
+        public void onFinish() {  
+          txtCronometro.setText(""); 
+          txtCronometro.setText("");  
+          spinnerEstados.setEnabled(true);
+          spinnerEstados.setSelection(0);
+          txtCliente.setText("");
+          txtDireccion.setText("");
+          txtHora.setText("");
+          TabMovil.clientePasaje = null;
+          TabMovil.direccionPasaje = null;
+          TabMovil.horaPasaje = null;
+          TabMovil.cronometro = null;
+        }  
+       
+         @Override  
+         public void onTick(long millisUntilFinished) {  
+               long millis = millisUntilFinished;  
+                String hms = String.format("%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(millis),  
+                TimeUnit.MILLISECONDS.toMinutes(millis) - TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),  
+                TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));  
+                txtCronometro.setText(hms);  
+         }  
+    }
 
 	public Spinner getSpinnerEstados() {
 		return spinnerEstados;
@@ -256,12 +324,12 @@ public class TabMovil extends Fragment{
 		this.spinnerEstados = spinner;
 	}
 
-	public Chofer getChofer() {
-		return chofer;
+	public Usuario getChofer() {
+		return usuario;
 	}
 
-	public void setChofer(Chofer chofer) {
-		this.chofer = chofer;
+	public void setChofer(Usuario usuario) {
+		this.usuario = usuario;
 	}
 	
 	

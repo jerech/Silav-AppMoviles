@@ -21,6 +21,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBar.TabListener;
+import android.util.Log;
 
 public class TabsListener <T extends Fragment> implements TabListener{
 	
@@ -31,6 +32,8 @@ public class TabsListener <T extends Fragment> implements TabListener{
 		this.tag=tag;
 		frament=Fragment.instantiate(a, cls.getName());
 		frament.setArguments(args);
+		Log.d("Se instancio Tab:", "El Fragment que se instancio es "+tag);
+		
 	}
 
 	@Override
@@ -44,6 +47,7 @@ public class TabsListener <T extends Fragment> implements TabListener{
 	public void onTabSelected(Tab tab, FragmentTransaction ft) {
 		// TODO Auto-generated method stub
 		ft.replace(android.R.id.content, frament, tag);
+		Log.d("onTabSelected sobre:", (String) tab.getText());
 		
 	}
 

@@ -10,7 +10,7 @@
  **
  * @Modificaciones relevantes:
  * 09/09/14-Se refactoriza el código tratando de cumplir con Estandar - Jeremías Chaparro
- *
+ * 20/02/15-Se agrega el registro en GCM - Jeremías Chaparro
  */
 package interfaz;
 
@@ -20,10 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import modelo.Chofer;
+import modelo.Usuario;
 import modelo.Movil;
 
 import com.appremises.R;
@@ -31,14 +29,15 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import constantes.ConstantesWebService;
 import constantes.Estados;
-import controladores.BBDD;
 import controladores.WebService;
+import dao.MovilDAO;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.ConnectivityManager;
@@ -64,7 +63,7 @@ public class InicioSesion extends Activity{
 	private Button btnIniciar;
 	private ProgressDialog dialogoProgreso;
 	private Context context;
-	private Chofer chofer;
+	private Usuario usuario;
 	
 	//Variables para implemetar GCM
 	//private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -72,7 +71,8 @@ public class InicioSesion extends Activity{
 	private static final String PROPERTY_REG_ID = "registration_id";
 	private static final String PROPERTY_APP_VERSION = "appVersion";
 	private static final String PROPERTY_EXPIRATION_TIME = "onServerExpirationTimeMs";
-	private static final String PROPERTY_USER = "usuario";
+	public static final String PROPERTY_USER = "usuario";
+	public static final String NOMBRE_SHARED_PREFERENCE = "ConfiguracionInicial";
 	public static final long EXPIRATION_TIME_MS = 1000 * 3600 * 24 * 7;
 	String SENDER_ID = "63779176750";//numero de proyecto en la cuenta de google console
 	static final String TAG = "GCM Silav";
@@ -87,10 +87,19 @@ public class InicioSesion extends Activity{
 		super.onCreate(savedIntanceState);
 		setContext(this);
 		setContentView(R.layout.iu_inicio_sesion);
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		
 		setEditTxtUsuario((EditText) findViewById(R.id.txtUsuario));
 		setEditTxtPass((EditText) findViewById(R.id.txtPass));
 		setBtnIniciar((Button) findViewById(R.id.btnIniciar));
+		
+		SharedPreferences prefs = getSharedPreferences(
+				NOMBRE_SHARED_PREFERENCE,
+				Context.MODE_PRIVATE);
+		String usuarioGuardado = prefs.getString(PROPERTY_USER, null);
+		if(usuarioGuardado != null && !usuarioGuardado.equals("")){
+			getEditTxtUsuario().setText(usuarioGuardado);
+		}
 		
 		//Se obtiene el numero de remis desde las preferencias de la app
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -101,9 +110,10 @@ public class InicioSesion extends Activity{
 		ConstantesWebService.URL = "http://"+sitio+"/WebService/servicio.php".trim();
 		ConstantesWebService.NAME_SPACE = "http://"+sitio+"/WebService".trim();
 		
+	
 		Movil movil = new Movil(num);
-		chofer = new Chofer(Estados.LIBRE);
-		getChofer().setMovil(movil);
+		usuario = new Usuario(Estados.LIBRE);
+		getUsuario().setMovil(movil);
 		
 		ListenerClick listenerClick = new ListenerClick();
 		getBtnIniciar().setOnClickListener(listenerClick);	
@@ -138,10 +148,11 @@ public class InicioSesion extends Activity{
 		public void onClick(View v) {
 			String nombreUsuario = getEditTxtUsuario().getText().toString();
 			String contraseniaUsuario = getEditTxtPass().getText().toString();
-			getChofer().setUsuario(nombreUsuario);
-			getChofer().setContrasenia(contraseniaUsuario);
+			getUsuario().setUsuario(nombreUsuario);
+			getUsuario().setContrasenia(contraseniaUsuario);
 			
-			if(conInternet()){
+			if(conInternet()){			
+				
 				// Usamos una AsyncTask, para mostrar una ventana de espera, mientras se consulta al Web Service
 				TareaAsincronaAutenticarChofer tareaAsincrona = new TareaAsincronaAutenticarChofer();
 				tareaAsincrona.execute("");
@@ -156,12 +167,16 @@ public class InicioSesion extends Activity{
 	private class TareaAsincronaAutenticarChofer extends AsyncTask<String, Void, Object>{
 		
 		boolean respuesta;
+		boolean respuestaGcm;
+		private WebService ws;
 		
 		protected Integer doInBackground(String... args){
-			
-			respuesta = getChofer().conectarUsuario()&&sincronizarBDMoviles();
+			ws = new WebService();
+			respuestaGcm = true;
+			respuesta = ws.conectarUsuario(getUsuario());
 			if(respuesta){
-				obtenerRegistroGCM();
+				sincronizarBDMoviles();
+				respuestaGcm = obtenerRegistroGCM();
 			}
 			return 1;
 		}
@@ -175,15 +190,21 @@ public class InicioSesion extends Activity{
 			if(respuesta){
 				
 				Intent miIntent = new Intent(InicioSesion.this, PantallaPrincipal.class);
-				miIntent.putExtra("usuario", getChofer().getUsuario());
-				miIntent.putExtra("numeroMovil", getChofer().getMovil().getNumero());
+				miIntent.putExtra("numeroMovil", getUsuario().getMovil().getNumero());
+				miIntent.putExtra("usuario", getUsuario().getUsuario());
 				miIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				
 				startActivity(miIntent);
 			}else{
+				
 				String cuerpoMsjDialogo = "Usuario o contraseña incorrecto.";
 				Toast.makeText(getContext(), cuerpoMsjDialogo, Toast.LENGTH_LONG).show();
 			}
+			if(!respuestaGcm){
+				String cuerpoMsjDialogo = "No se pudo realizar al registro GCM.";
+				Toast.makeText(getContext(), cuerpoMsjDialogo, Toast.LENGTH_LONG).show();
+			}
+			
 			super.onPostExecute(result);
 		}
 		
@@ -193,20 +214,19 @@ public class InicioSesion extends Activity{
 	private boolean sincronizarBDMoviles(){
 		boolean respuesta = false;
 		WebService ws = new WebService();
-		ArrayList<Movil> listaMoviles = ws.obtenerMoviles(getChofer().getUsuario().toString());
+		ArrayList<Movil> listaMoviles = ws.obtenerMoviles(getUsuario().getUsuario().toString());
 		
 		if(!listaMoviles.isEmpty()){
 			respuesta = true;
 			
-			BBDD bd = new BBDD(this);
-			bd.borrarTodosLosMoviles();
+			MovilDAO movilDAO = new MovilDAO(this);
+			movilDAO.borrarTodosLosMoviles();
 			Iterator< Movil> i=listaMoviles.iterator();
 			while(i.hasNext()){
-				Movil r = i.next();
-				bd.insertarMovil(r.getNumero(), r.getMarca(), r.getModelo());
+				Movil m = i.next();
+				movilDAO.nuevo(m.getNumero(),m.getMarca(),m.getModelo());
 			}
-			
-			bd.close();
+	
 		}		
 		return respuesta;
 	}
@@ -240,18 +260,21 @@ public class InicioSesion extends Activity{
          
                         //Nos registramos en nuestro servidor
                         WebService ws = new WebService();
-                        boolean registrado = ws.enviarClaveGCM(getEditTxtUsuario().getText().toString(), regid);
+                        boolean registrado = ws.enviarClaveGCM(getUsuario().getUsuario(), regid);
          
                         //Guardamos los datos del registro
                         if(registrado)
                         {
-                            setRegistrationId(context, getEditTxtUsuario().getText().toString(), regid);
+                            setRegistrationId(context, getUsuario().getUsuario(), regid);
+                            resultado = true;
                         }
                     }
                     catch (IOException ex)
                     {
                         Log.d(TAG, "Error registro en GCM:" + ex.getMessage());
                     }
+                }else{
+                	resultado = true;
                 }
         //}
         //else
@@ -264,7 +287,7 @@ public class InicioSesion extends Activity{
 	
 	private String getRegistrationId(Context context){
 		SharedPreferences prefs = getSharedPreferences(
-		InicioSesion.class.getSimpleName(),
+		NOMBRE_SHARED_PREFERENCE,
 		Context.MODE_PRIVATE);
 		String registrationId = prefs.getString(PROPERTY_REG_ID, "");
 		
@@ -284,16 +307,16 @@ public class InicioSesion extends Activity{
 		
 		int currentVersion = getAppVersion(context);
 		if (registeredVersion != currentVersion){
-		Log.d(TAG, "Nueva versión de la aplicación.");
-		return "";
+			Log.d(TAG, "Nueva versión de la aplicación.");
+			return "";
 		}
 		else if (System.currentTimeMillis() > expirationTime){
-		Log.d(TAG, "Registro GCM expirado.");
-		return "";
+			Log.d(TAG, "Registro GCM expirado.");
+			return "";
 		}
-		else if (!getEditTxtUsuario().getText().toString().equals(registeredUser)){
-		Log.d(TAG, "Nuevo nombre de usuario.");
-		return "";
+		else if (!getUsuario().getUsuario().equals(registeredUser)){
+			Log.d(TAG, "Nuevo nombre de usuario.");
+			return "";
 		}
 		return registrationId;
 	}
@@ -312,8 +335,8 @@ public class InicioSesion extends Activity{
 	
 	private void setRegistrationId(Context context, String user, String regId){
 		SharedPreferences prefs = getSharedPreferences(
-	    InicioSesion.class.getSimpleName(),
-	        Context.MODE_PRIVATE);
+				NOMBRE_SHARED_PREFERENCE,
+				Context.MODE_PRIVATE);
 	 
 	    int appVersion = getAppVersion(context);
 	 
@@ -342,7 +365,6 @@ public class InicioSesion extends Activity{
 		} 
 		else {
 			Toast.makeText(getApplicationContext(), "Verifique su conexión a Internet", Toast.LENGTH_LONG).show();
-			Logger.getLogger(InicioSesion.class.getName()).log(Level.INFO, "Sin conexión a Internet");
 		}
 		return false;
 	}
@@ -387,12 +409,12 @@ public class InicioSesion extends Activity{
 		this.context = context;
 	}
 
-	public Chofer getChofer() {
-		return chofer;
+	public Usuario getUsuario() {
+		return usuario;
 	}
 
-	public void setChofer(Chofer chofer) {
-		this.chofer = chofer;
+	public void setUsuario(Usuario usuario) {
+		this.usuario = usuario;
 	}	
 	
 
