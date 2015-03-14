@@ -353,9 +353,9 @@ int id title 0x7f06002b
 int id top_action_bar 0x7f060020
 int id txtCliente 0x7f060043
 int id txtDireccion 0x7f060044
-int id txtFecha 0x7f060041
+int id txtFecha 0x7f060042
 int id txtHoraSolicitado 0x7f060056
-int id txtId 0x7f060042
+int id txtId 0x7f060041
 int id txtPass 0x7f060048
 int id txtUsuario 0x7f060047
 int id txt_busqueda_pasajes 0x7f060057
@@ -636,7 +636,7 @@ int styleable MenuItem_android_title 7
 int styleable MenuItem_android_titleCondensed 8
 int styleable MenuItem_android_visible 4
 int styleable MenuItem_showAsAction 13
-int[] styleable MenuView { 0x010100ae, 0x0101012c, 0x0101012d, 0x0101012e, 0x0101012f, 0x01010130, 0x01010131, 0x01010438 }
+int[] styleable MenuView { 0x010100ae, 0x0101012c, 0x0101012d, 0x0101012e, 0x0101012f, 0x01010130, 0x01010131, 0x01010435 }
 int styleable MenuView_android_headerBackground 4
 int styleable MenuView_android_horizontalDivider 2
 int styleable MenuView_android_itemBackground 5

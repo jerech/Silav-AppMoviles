@@ -1191,9 +1191,9 @@ containing a value of this type.
         public static final int top_action_bar=0x7f060020;
         public static final int txtCliente=0x7f060043;
         public static final int txtDireccion=0x7f060044;
-        public static final int txtFecha=0x7f060041;
+        public static final int txtFecha=0x7f060042;
         public static final int txtHoraSolicitado=0x7f060056;
-        public static final int txtId=0x7f060042;
+        public static final int txtId=0x7f060041;
         public static final int txtPass=0x7f060048;
         public static final int txtUsuario=0x7f060047;
         public static final int txt_busqueda_pasajes=0x7f060057;
@@ -2698,7 +2698,7 @@ containing a value of this type.
          */
         public static final int[] MenuView = {
             0x010100ae, 0x0101012c, 0x0101012d, 0x0101012e,
-            0x0101012f, 0x01010130, 0x01010131, 0x01010438
+            0x0101012f, 0x01010130, 0x01010131, 0x01010435
         };
         /**
           <p>

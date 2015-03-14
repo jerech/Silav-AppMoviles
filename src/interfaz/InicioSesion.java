@@ -61,7 +61,6 @@ public class InicioSesion extends Activity{
 	private EditText editTxtUsuario;
 	private EditText editTxtPass;
 	private Button btnIniciar;
-	private ProgressDialog dialogoProgreso;
 	private Context context;
 	private Usuario usuario;
 	
@@ -154,11 +153,8 @@ public class InicioSesion extends Activity{
 			if(conInternet()){			
 				
 				// Usamos una AsyncTask, para mostrar una ventana de espera, mientras se consulta al Web Service
-				TareaAsincronaAutenticarChofer tareaAsincrona = new TareaAsincronaAutenticarChofer();
-				tareaAsincrona.execute("");
-				String tituloDialogo = "Por favor espere.";
-				String cuerpoMsjDialogo = "Autenticando usuario.";
-				setDialogoProgreso(ProgressDialog.show(getContext(), tituloDialogo, cuerpoMsjDialogo,true,false));	
+				TareaAsincronaAutenticarChofer tareaAsincrona = new TareaAsincronaAutenticarChofer(InicioSesion.this);
+				tareaAsincrona.execute("");	
 			}
 		}
 	}
@@ -169,6 +165,16 @@ public class InicioSesion extends Activity{
 		boolean respuesta;
 		boolean respuestaGcm;
 		private WebService ws;
+		private ProgressDialog progressDialog;
+
+		public TareaAsincronaAutenticarChofer(Activity activity){
+			this.progressDialog = new ProgressDialog(activity);
+            this.progressDialog.setTitle("Conectando...");
+            this.progressDialog.setMessage("Se esta iniciando sesión.");
+            if(!this.progressDialog.isShowing()){
+                this.progressDialog.show();
+            }
+		}
 		
 		protected Integer doInBackground(String... args){
 			ws = new WebService();
@@ -184,10 +190,10 @@ public class InicioSesion extends Activity{
 		protected void onPostExecute(Object result){
 			
 			//Se elimina la pantalla de por favor esperar
-			getDialogoProgreso().dismiss();
+			this.progressDialog.dismiss();
 			
 			//Se muestra el resultado
-			if(respuesta){
+			if(respuesta&&respuestaGcm){
 				
 				Intent miIntent = new Intent(InicioSesion.this, PantallaPrincipal.class);
 				miIntent.putExtra("numeroMovil", getUsuario().getMovil().getNumero());
@@ -195,8 +201,8 @@ public class InicioSesion extends Activity{
 				miIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				
 				startActivity(miIntent);
-			}else{
-				
+			}
+			if(!respuesta){
 				String cuerpoMsjDialogo = "Usuario o contraseña incorrecto.";
 				Toast.makeText(getContext(), cuerpoMsjDialogo, Toast.LENGTH_LONG).show();
 			}
@@ -391,14 +397,6 @@ public class InicioSesion extends Activity{
 
 	public void setBtnIniciar(Button btnIniciar) {
 		this.btnIniciar = btnIniciar;
-	}
-
-	public ProgressDialog getDialogoProgreso() {
-		return dialogoProgreso;
-	}
-
-	public void setDialogoProgreso(ProgressDialog dialogoProgreso) {
-		this.dialogoProgreso = dialogoProgreso;
 	}
 
 	public Context getContext() {

@@ -44,6 +44,8 @@ import android.content.pm.ActivityInfo;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -77,6 +79,8 @@ public class PantallaPrincipal extends ActionBarActivity{
 	private LocationManager locManager;
 	final int NUM_NOTIFICACION_APP = 1; 
 	TextView txtCronometro;
+	protected Pasaje pasaje;
+	protected Dialog dialog;
 	
 
 	@Override
@@ -85,7 +89,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 	
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		
+		pasaje = new Pasaje();
 		TareaAsincronaNotificacion n = new TareaAsincronaNotificacion();
 		n.execute("");
 		
@@ -124,7 +128,6 @@ public class PantallaPrincipal extends ActionBarActivity{
 		actionBar.setSelectedNavigationItem(1);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setearUbicacionMovil();
-		
 		
 		//Registramos en intent service para  poder recibir la respuesta en el broadcast receiver
 		IntentFilter filter = new IntentFilter();
@@ -219,7 +222,9 @@ public class PantallaPrincipal extends ActionBarActivity{
 			TareaAsincronaUbicacion nuevaTareaAsincrona = new TareaAsincronaUbicacion();
 			getUsuario().setUbicacionLatitud(location.getLatitude());
 			getUsuario().setUbicacionLongitud(location.getLongitude());
-			nuevaTareaAsincrona.execute("");
+			if(conInternet()){
+				nuevaTareaAsincrona.execute("");
+			}
 			
 		}
 
@@ -264,7 +269,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 		public TareaAsincronaDesconectarChofer(Activity activity){
 			
             this.progressDialog = new ProgressDialog(activity);
-            this.progressDialog.setTitle("Desconectando.");
+            this.progressDialog.setTitle("Desconectando...");
             this.progressDialog.setMessage("La sesión se está cerrando.");
             if(!this.progressDialog.isShowing()){
                 this.progressDialog.show();
@@ -285,7 +290,10 @@ public class PantallaPrincipal extends ActionBarActivity{
 					
 			//Se elimina la pantalla de por favor esperar
 			this.progressDialog.dismiss();		
+			Intent miIntent = new Intent(PantallaPrincipal.this, InicioSesion.class);
+			miIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			
+			startActivity(miIntent);
 			finish();
 			
 		}		
@@ -333,15 +341,15 @@ public class PantallaPrincipal extends ActionBarActivity{
 	    }
 	}
 	
-	private void mostrarMensajePasaje(String direccion, String cliente, int id, String fecha){	
-		// custom dialog
-		final Pasaje pasaje = new Pasaje();
+	private void mostrarMensajePasaje(String direccion, String cliente, int id, String fecha){
+		
+		// custom dialog 
 		pasaje.setId(id);
 		pasaje.setFecha(fecha);
 		pasaje.setCliente(cliente);
 		pasaje.setDireccion(direccion);
 		
-		final Dialog dialog = new Dialog(PantallaPrincipal.this);
+		dialog = new Dialog(PantallaPrincipal.this);
 		dialog.setContentView(R.layout.dialogo_pasaje);
 		dialog.setTitle("Aceptar Pasaje");
  
@@ -355,45 +363,34 @@ public class PantallaPrincipal extends ActionBarActivity{
  
 			Button btnSi = (Button) dialog.findViewById(R.id.btn_dialog_si);
 			Button btnNo = (Button) dialog.findViewById(R.id.btn_dialog_no);
+			
 			// if button is clicked, close the custom dialog
 			btnSi.setOnClickListener(new OnClickListener() {
 			
 				@Override
 				public void onClick(View arg0) {
-					PasajeDAO pasajeDao = new PasajeDAO(getApplicationContext());
-					pasajeDao.nuevo(pasaje);
+					TareaAsincronaNotificarEstadoPasaje tn = new TareaAsincronaNotificarEstadoPasaje();
 					txtDireccion = (TextView) findViewById(R.id.txtDireccion);
 					txtCliente = (TextView) findViewById(R.id.txtCliente);
 					txtHora = (TextView) findViewById(R.id.txtHoraSolicitado);
-					spinnerEstados = (Spinner) findViewById(R.id.spinnerEstados);
-					
-					txtDireccion.setText(pasaje.getDireccion());
-					TabMovil.direccionPasaje = pasaje.getDireccion();
-					
-					txtCliente.setText(pasaje.getCliente());
-					TabMovil.clientePasaje = pasaje.getCliente();
-					
-					String hora = pasaje.getFecha().split(" ")[1];		
-					txtHora.setText(hora);
-					TabMovil.horaPasaje = hora;
-						
-					spinnerEstados.setSelection(1);
-					spinnerEstados.setEnabled(false);
-				
 					txtCronometro = (TextView) findViewById(R.id.cronometro);
-					txtCronometro.setText("00:03:00");
-					final CounterClass timer = new CounterClass(180000,1000); 
-					timer.start();
-					
+					spinnerEstados = (Spinner) findViewById(R.id.spinnerEstados);
+					if(conInternet()){
+						tn.execute("asignado","si");
+					}
 					dialog.dismiss();
-					
 				}
+					
 			});
 			
 			btnNo.setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View v) {
+					TareaAsincronaNotificarEstadoPasaje tn = new TareaAsincronaNotificarEstadoPasaje();
+					if(conInternet()){
+						tn.execute("rechazado","no");
+					}
 					dialog.dismiss();
 					
 				}
@@ -436,7 +433,73 @@ public class PantallaPrincipal extends ActionBarActivity{
     }  
 
 
+	private class TareaAsincronaNotificarEstadoPasaje extends AsyncTask<String, Void, Object>{
+		private WebService ws;
+		boolean respuesta;
+		boolean esAceptado = false;
+		
+		protected void onPreExecute(){
+			
+		}
+		protected Integer doInBackground(String... args){
+			ws = new WebService();
+			if(args[1].equals("si")){
+				esAceptado = true;
+			}
+			respuesta=ws.notificarEstadoPasajeEnCurso(pasaje.getId(), args[0]);	
+			
+			return 1;
+		}
+		
+		protected void onPostExecute(Object result){
+			
+			if(respuesta && esAceptado){
+				PasajeDAO pasajeDao = new PasajeDAO(getApplicationContext());
+				pasajeDao.nuevo(pasaje);
+				
+				txtDireccion.setText(pasaje.getDireccion());
+				TabMovil.direccionPasaje = pasaje.getDireccion();
+				
+				txtCliente.setText(pasaje.getCliente());
+				TabMovil.clientePasaje = pasaje.getCliente();
+				
+				String hora = pasaje.getFecha().split(" ")[1];		
+				txtHora.setText(hora);
+				TabMovil.horaPasaje = hora;
+					
+				spinnerEstados.setSelection(1);
+				spinnerEstados.setEnabled(false);
+			
+				txtCronometro = (TextView) findViewById(R.id.cronometro);
+				txtCronometro.setText("00:03:00");
+				final CounterClass timer = new CounterClass(180000,1000); 
+				timer.start();
+			}else{
+				Toast.makeText(getApplicationContext(), "El pasaje fue cancelado", Toast.LENGTH_LONG).show();
+			}
+			
+		}
 
+	}
+	
+	public boolean conInternet() {
+		Context context = getApplicationContext();
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		if (connectivityManager != null) {
+			NetworkInfo[] netInfo = connectivityManager.getAllNetworkInfo();
+			if (netInfo != null) {
+				for (NetworkInfo net : netInfo) {
+					if (net.getState() == NetworkInfo.State.CONNECTED) {
+						return true;
+					}
+				}
+			}
+		} 
+		else {
+			Toast.makeText(getApplicationContext(), "Verifique su conexión a Internet", Toast.LENGTH_LONG).show();
+		}
+		return false;
+	}
 
 	public Tab getTabMovil() {
 		return tabMovil;

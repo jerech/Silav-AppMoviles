@@ -8,16 +8,17 @@
       android:layout_height="wrap_content"
       android:orientation="horizontal"
       android:gravity="center"
-      android:paddingLeft="7dp"
-      android:paddingRight="7dp"
+      android:paddingLeft="4dp"
+      android:paddingRight="4dp"
       >
 
       <EditText
           android:id="@+id/txt_busqueda_pasajes"
           android:layout_width="match_parent"
           android:layout_height="35dp"
+          android:layout_marginTop="3dp"
           android:gravity="center_horizontal"
-          android:hint=" Buscador de pasajes"
+          android:hint="Buscar"
           android:textSize="19sp" />
       
   </LinearLayout>  

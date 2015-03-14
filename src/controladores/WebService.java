@@ -38,7 +38,7 @@ public boolean conectarUsuario(Usuario usuario){
 		//Para acceder al WS se crea un objeto de tipo HttpTransport
 		HttpTransportSE androidHttpTransport=null;
 		try{
-			androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL);
+			androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL,4000);
 			androidHttpTransport.debug=true;
 					
 			//Se llama al servicio web
@@ -75,7 +75,7 @@ public boolean conectarUsuario(Usuario usuario){
 			//Para acceder al WS se crea un objeto de tipo HttpTransport
 			HttpTransportSE androidHttpTransport=null;
 			try{
-				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL);
+				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL,3000);
 				androidHttpTransport.debug=true;
 						
 				//Se llama al servicio web
@@ -113,7 +113,7 @@ public boolean conectarUsuario(Usuario usuario){
 			//Para acceder al WS se crea un objeto de tipo HttpTransport
 			HttpTransportSE androidHttpTransport=null;
 			try{
-				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL);
+				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL,2000);
 				androidHttpTransport.debug=true;
 				
 				//Se llama al servicio web
@@ -149,7 +149,7 @@ public boolean conectarUsuario(Usuario usuario){
 			env.encodingStyle=SoapSerializationEnvelope.XSD;
 			//Para acceder al WS se crea un objeto de tipo HttpTransport
 			HttpTransportSE androidHttpTransport=null;
-			androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL);
+			androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL,2500);
 			androidHttpTransport.debug=true;
 			
 			try{
@@ -193,7 +193,7 @@ public boolean conectarUsuario(Usuario usuario){
 		ArrayList<Movil> listaMoviles = null;
 		
 		try{
-			androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL);
+			androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL,3500);
 			androidHttpTransport.debug=true;
 					
 			//Se llama al servicio web
@@ -244,7 +244,7 @@ public boolean conectarUsuario(Usuario usuario){
 			//Para acceder al WS se crea un objeto de tipo HttpTransport
 			HttpTransportSE androidHttpTransport=null;
 			try{
-				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL);
+				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL,3000);
 				androidHttpTransport.debug=true;
 						
 				//Se llama al servicio web
@@ -282,7 +282,7 @@ public boolean conectarUsuario(Usuario usuario){
 			//Para acceder al WS se crea un objeto de tipo HttpTransport
 			HttpTransportSE androidHttpTransport=null;
 			try{
-				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL);
+				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL,2500);
 				androidHttpTransport.debug=true;
 						
 				//Se llama al servicio web
@@ -298,5 +298,41 @@ public boolean conectarUsuario(Usuario usuario){
 			
 			return respuesta;
 	    }
+	    
+	    public boolean notificarEstadoPasajeEnCurso(int idPasaje, String estado){
+			boolean respuesta=false;
+			final String nombreFuncion = "notificarEstadoPasajeEnCurso";
+			SoapObject rpc;
+			rpc = new SoapObject(ConstantesWebService.NAME_SPACE, nombreFuncion);
+			
+			rpc.addProperty("idPasaje", idPasaje);
+			rpc.addProperty("estado", estado);
+		
+			SoapSerializationEnvelope env = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+			env.bodyOut=rpc;
+			
+			//Se establece si el WS esta hecho en .net
+			env.dotNet=false;
+					
+			env.encodingStyle=SoapSerializationEnvelope.XSD;
+			//Para acceder al WS se crea un objeto de tipo HttpTransport
+			HttpTransportSE androidHttpTransport=null;
+			try{
+				androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL,2500);
+				androidHttpTransport.debug=true;
+				
+				//Se llama al servicio web
+				androidHttpTransport.call(ConstantesWebService.NAME_SPACE+"/"+nombreFuncion, env);
+				
+				//guardar la respuesta en una variable
+				respuesta=(Boolean) env.getResponse();
+				
+				}catch(Exception e){
+					System.out.println(e.getMessage());
+					respuesta=false;
+				}
+			
+			return respuesta;	
+		}
 	
 }
