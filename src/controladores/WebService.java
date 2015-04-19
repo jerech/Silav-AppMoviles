@@ -15,6 +15,44 @@ import modelo.Usuario;
 
 public class WebService {
 	
+public boolean loginUsuario(Usuario usuario){
+	boolean respuesta=false;
+	
+	//Se crea un objeto de tipo soap.
+	SoapObject rpc;
+	rpc = new SoapObject(ConstantesWebService.NAME_SPACE, "login");
+	
+	rpc.addProperty("usuario", usuario.getUsuario());
+	rpc.addProperty("contrasenia", usuario.getContrasenia());
+	SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+	envelope.bodyOut=rpc;
+	
+	//Se establece si el WS esta hecho en .net
+	envelope.dotNet=false;
+			
+	envelope.encodingStyle=SoapSerializationEnvelope.XSD;
+	
+	//Para acceder al WS se crea un objeto de tipo HttpTransport
+	HttpTransportSE androidHttpTransport=null;
+	try{
+		androidHttpTransport = new HttpTransportSE(ConstantesWebService.URL,4000);
+		androidHttpTransport.debug=true;
+				
+		//Se llama al servicio web
+		androidHttpTransport.call(ConstantesWebService.NAME_SPACE + "/login", envelope);
+
+		//guardar la respuesta en una variable
+		respuesta=(Boolean) envelope.getResponse();
+		
+		}catch(Exception e){
+				System.out.println(e.getMessage());
+				respuesta=false;
+			}
+	
+	return respuesta;
+	
+}
+	
 public boolean conectarUsuario(Usuario usuario){
 		
 		boolean respuesta=false;

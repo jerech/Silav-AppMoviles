@@ -168,21 +168,29 @@ public class InicioSesion extends Activity{
 		private ProgressDialog progressDialog;
 
 		public TareaAsincronaAutenticarChofer(Activity activity){
+			ws = new WebService();
 			this.progressDialog = new ProgressDialog(activity);
             this.progressDialog.setTitle("Conectando...");
             this.progressDialog.setMessage("Se esta iniciando sesión.");
+            this.progressDialog.setCancelable(false);
             if(!this.progressDialog.isShowing()){
                 this.progressDialog.show();
             }
 		}
 		
 		protected Integer doInBackground(String... args){
-			ws = new WebService();
+			
 			respuestaGcm = true;
-			respuesta = ws.conectarUsuario(getUsuario());
+			
+			respuesta = ws.loginUsuario(getUsuario());
 			if(respuesta){
+				Log.d("Paso login."+respuesta, "Sincronizando moviles y obteniendo GCM");
 				sincronizarBDMoviles();
 				respuestaGcm = obtenerRegistroGCM();
+			}
+			if(respuesta && respuestaGcm){
+				Log.d("Paso GCM y sinc moviles.","conectando chofer..");
+				respuesta = ws.conectarUsuario(getUsuario());
 			}
 			return 1;
 		}
@@ -193,7 +201,7 @@ public class InicioSesion extends Activity{
 			this.progressDialog.dismiss();
 			
 			//Se muestra el resultado
-			if(respuesta&&respuestaGcm){
+			if(respuesta && respuestaGcm){
 				
 				Intent miIntent = new Intent(InicioSesion.this, PantallaPrincipal.class);
 				miIntent.putExtra("numeroMovil", getUsuario().getMovil().getNumero());
@@ -201,6 +209,7 @@ public class InicioSesion extends Activity{
 				miIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				
 				startActivity(miIntent);
+				
 			}
 			if(!respuesta){
 				String cuerpoMsjDialogo = "Usuario o contraseña incorrecto.";
