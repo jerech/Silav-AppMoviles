@@ -22,6 +22,8 @@ import modelo.Pasaje;
 import adaptadores.PasajesAdapter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +54,33 @@ public class TabPasaje extends Fragment {
 		listaPasajes.setAdapter(adaptadorPasajes);
 		registerForContextMenu(listaPasajes);
 		
+		editBusquedaPasajes.addTextChangedListener(new TextWatcher() {
+			
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				// TODO Auto-generated method stub
+				
+				((PasajesAdapter) adaptadorPasajes).getFilter().filter(s);
+				((PasajesAdapter) adaptadorPasajes).updatePasajes(pasajes);
+				
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void afterTextChanged(Editable s) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
 		return viewRoot;
 	}
+	
+	
 }

@@ -172,7 +172,7 @@ public class InicioSesion extends Activity{
 			this.progressDialog = new ProgressDialog(activity);
             this.progressDialog.setTitle("Conectando...");
             this.progressDialog.setMessage("Se esta iniciando sesión.");
-            this.progressDialog.setCancelable(false);
+            //this.progressDialog.setCancelable(false);
             if(!this.progressDialog.isShowing()){
                 this.progressDialog.show();
             }

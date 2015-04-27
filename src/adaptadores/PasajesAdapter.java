@@ -8,7 +8,6 @@ import com.appremises.R;
 import modelo.Pasaje;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,9 +69,6 @@ public class PasajesAdapter extends BaseAdapter implements Filterable{
 	            FilterResults results = new FilterResults();
 	            ArrayList<Pasaje> FilteredArrList = new ArrayList<Pasaje>();
 
-	            /*if (clientes_filtro == null) {
-	                clientes = new ArrayList<Cliente>(clientes_filtro); // saves the original data in mOriginalValues
-	            }*/
 
 	            if (constraint == null || constraint.length() == 0) {
 	            	
@@ -85,11 +81,14 @@ public class PasajesAdapter extends BaseAdapter implements Filterable{
 	                    Pasaje pasaje = pasajes.get(i);
 	                    if (pasaje.getFecha().contains(constraint.toString())) {
 	                        FilteredArrList.add(pasaje);
-	                        Log.e("",pasaje.getFecha());
 	                 
 	                    }
 	                    
 	                    if (String.valueOf(pasaje.getId()).contains(constraint.toString())){
+	                    	FilteredArrList.add(pasaje);
+	                    }
+	                    
+	                    if(pasaje.getCliente().contains(constraint.toString())){
 	                    	FilteredArrList.add(pasaje);
 	                    }
 	                }
