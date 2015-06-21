@@ -38,6 +38,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -72,6 +73,17 @@ public class TabMovil extends Fragment{
 		getChofer().setMovil(new Movil());
 	}
 	
+	
+	@Override
+	public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onActivityCreated(savedInstanceState);
+		this.getActivity();
+	}
+
+
+
+
 	public View onCreateView(LayoutInflater inflater, 
 	        ViewGroup container, Bundle savedInstanceState){
 		
@@ -144,6 +156,8 @@ public class TabMovil extends Fragment{
 	}
 	
 	
+	
+	
 	private class ListenerItemSeleccionado implements OnItemSelectedListener{
 
 		TareaAsincronaActualizarEstado tareaAsincrona;
@@ -156,13 +170,15 @@ public class TabMovil extends Fragment{
 	        	case 0:
 	        			if(getChofer().getEstado() != Estados.LIBRE){
 	        				getChofer().setEstado(Estados.LIBRE);
-	            			tareaAsincrona = new TareaAsincronaActualizarEstado();
+	        				PantallaPrincipal.setEstadoUsuario(Estados.LIBRE);
+	        				tareaAsincrona = new TareaAsincronaActualizarEstado();
 	            			tareaAsincrona.execute("");
 	        			}
 	        		break;
 	        	case 1:
 	        			if(getChofer().getEstado() != Estados.OCUPADO){
 	        				getChofer().setEstado(Estados.OCUPADO);
+	        				PantallaPrincipal.setEstadoUsuario(Estados.OCUPADO);
 	            			tareaAsincrona = new TareaAsincronaActualizarEstado();
 	            			tareaAsincrona.execute("");         		
 	        			}
@@ -170,6 +186,7 @@ public class TabMovil extends Fragment{
 	        	case 2:
 	        			if(getChofer().getEstado() != Estados.INACTIVO){
 	        				getChofer().setEstado(Estados.INACTIVO);
+	        				PantallaPrincipal.setEstadoUsuario(Estados.INACTIVO);
 	            			tareaAsincrona = new TareaAsincronaActualizarEstado();
 	            			tareaAsincrona.execute("");	            		
 	        			}

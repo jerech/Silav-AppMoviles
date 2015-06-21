@@ -66,7 +66,7 @@ public class PasajeDAO extends DBHelper{
 		ContentValues parametros = new ContentValues();
 		parametros.put(ID, pasaje.getId());
 		parametros.put(DIRECCION, pasaje.getDireccion());
-		parametros.put(FECHA, pasaje.getFecha().toString());
+		parametros.put(FECHA, pasaje.getFecha());
 		parametros.put(CLIENTE, pasaje.getCliente());
 		
 		abrirDB();

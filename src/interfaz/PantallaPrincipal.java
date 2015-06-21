@@ -15,6 +15,7 @@
 
 package interfaz;
 
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import modelo.Pasaje;
@@ -23,7 +24,9 @@ import modelo.Movil;
 
 import com.appremises.R;
 
+import constantes.Estados;
 import controladores.GcmIntentService;
+import controladores.TimerEnviarUbicacion;
 import controladores.WebService;
 import dao.PasajeDAO;
 
@@ -44,6 +47,7 @@ import android.content.pm.ActivityInfo;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -55,6 +59,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -74,13 +79,16 @@ public class PantallaPrincipal extends ActionBarActivity{
 	TextView txtDireccion;
 	TextView txtCliente;
 	TextView txtHora;
-	private Usuario usuario;
+	private static Usuario usuario;
 	private LocationListener locListener;
 	private LocationManager locManager;
 	final int NUM_NOTIFICACION_APP = 1; 
 	TextView txtCronometro;
 	protected Pasaje pasaje;
 	protected Dialog dialog;
+	private boolean isDoInBackground;
+	private boolean notificacionCorriendo = false;
+	private Timer timer;
 	
 
 	@Override
@@ -90,11 +98,11 @@ public class PantallaPrincipal extends ActionBarActivity{
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		pasaje = new Pasaje();
-		TareaAsincronaNotificacion n = new TareaAsincronaNotificacion();
-		n.execute("");
+		//TareaAsincronaNotificacion n = new TareaAsincronaNotificacion();
+		//n.execute("");
 		
 		Movil movil = new Movil();
-		setUsuario(new Usuario());
+		usuario = new Usuario(Estados.LIBRE);
 		getUsuario().setMovil(movil);
 		
 		Bundle extras = getIntent().getExtras();
@@ -134,18 +142,33 @@ public class PantallaPrincipal extends ActionBarActivity{
 		filter.addAction(GcmIntentService.ACTION_PASAJE);
 		PasajeReceiver rcv = new PasajeReceiver();
 		registerReceiver(rcv, filter);
+		
+		TimerEnviarUbicacion timerTask = new TimerEnviarUbicacion(usuario, getApplicationContext());
+		timer = new Timer();
+		timer.scheduleAtFixedRate(timerTask, 0, 5000);
+		
+		
 			
 	}
 	
 	@Override
 	protected void onPause() {
 		super.onPause();
+		isDoInBackground = true;
 	}
 	
 	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
+		
+		if(notificacionCorriendo==true){
+			NotificationManager gestorNotificacion = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			gestorNotificacion.cancel(NUM_NOTIFICACION_APP);
+			notificacionCorriendo = false;
+		}
+			
+		isDoInBackground = false;
 		
 		//Matener pantalla encendida o no
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -198,20 +221,21 @@ public class PantallaPrincipal extends ActionBarActivity{
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		locManager.removeUpdates(locListener);
-        NotificationManager gestorNotificacion = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		gestorNotificacion.cancel(NUM_NOTIFICACION_APP);
+		timer.cancel();
+		timer.purge();
+        
 		super.onDestroy();
 		
 	}
 	
 		
-		protected void setearUbicacionMovil(){
+	protected void setearUbicacionMovil(){
 			
-			locManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);		
-	    	locListener = new ListenerUbicacion();   
-	    	locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 28, locListener);
+		locManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);		
+    	locListener = new ListenerUbicacion();   
+    	locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 28, locListener);
 	    	
-		}
+	}
 		
 	
 
@@ -219,19 +243,20 @@ public class PantallaPrincipal extends ActionBarActivity{
 
 		@Override
 		public void onLocationChanged(Location location) {
-			TareaAsincronaUbicacion nuevaTareaAsincrona = new TareaAsincronaUbicacion();
+			
 			getUsuario().setUbicacionLatitud(location.getLatitude());
 			getUsuario().setUbicacionLongitud(location.getLongitude());
-			if(conInternet()){
-				nuevaTareaAsincrona.execute("");
-			}
+					
 			
 		}
 
 		@Override
 		public void onStatusChanged(String provider, int status, Bundle extras) {
 		
-			
+			if(status == LocationProvider.OUT_OF_SERVICE || 
+					status == LocationProvider.TEMPORARILY_UNAVAILABLE){
+				getUsuario().setEstado(Estados.INACTIVO);
+			}
 		}
 
 		@Override
@@ -249,17 +274,6 @@ public class PantallaPrincipal extends ActionBarActivity{
 		
 	}
 	
-	private class TareaAsincronaUbicacion extends AsyncTask<String, Void, Object>{
-			
-			WebService ws;
-			@Override
-			protected Integer doInBackground(String... args){
-				ws = new WebService();
-				ws.actualizarUbicacion(getUsuario());
-				
-				return 1;
-			}
-	}
 	
 	private class TareaAsincronaDesconectarChofer extends AsyncTask<String, Void, Object>{
 		
@@ -312,18 +326,23 @@ public class PantallaPrincipal extends ActionBarActivity{
 			//Se crea la notificacion de la app
 			NotificationCompat.Builder miConstructor = new NotificationCompat.Builder(PantallaPrincipal.this);
 			miConstructor.setSmallIcon(R.drawable.ic_launcher);
-			miConstructor.setContentTitle("AppMoviles");
-			miConstructor.setContentText("Aplicación encendida");
-			miConstructor.setContentInfo("Ok");
+			miConstructor.setContentTitle("Silav");
+			miConstructor.setContentText("Nuevo Pasaje");
+			miConstructor.setContentInfo("Aceptar o rechazar el pasaje");
+			miConstructor.setVibrate(new long[] { 1000, 1000, 1000, 1200 });
 			miConstructor.setTicker("SiLAV");
-			miConstructor.setOngoing(true);
+			miConstructor.setOngoing(false);
 		
+			notificacionCorriendo = true;
+			
 			Intent intent = new Intent(PantallaPrincipal.this, PantallaPrincipal.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
 			PendingIntent intentPendiente = PendingIntent.getActivity(PantallaPrincipal.this, 0, intent, 0);
 			miConstructor.setContentIntent(intentPendiente);
 			NotificationManager gestorNotificacion = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 			gestorNotificacion.notify(NUM_NOTIFICACION_APP, miConstructor.build());
+			
+			
 		}
 
 	
@@ -343,13 +362,29 @@ public class PantallaPrincipal extends ActionBarActivity{
 	
 	private void mostrarMensajePasaje(String direccion, String cliente, int id, String fecha){
 		
+		if(isDoInBackground == true){
+			TareaAsincronaNotificacion taNotificacion = new TareaAsincronaNotificacion();
+			taNotificacion.execute("");
+		}
+		
 		// custom dialog 
+		Log.d("fecha",fecha.toString());
 		pasaje.setId(id);
 		pasaje.setFecha(fecha);
 		pasaje.setCliente(cliente);
 		pasaje.setDireccion(direccion);
 		
-		dialog = new Dialog(PantallaPrincipal.this);
+		
+		int androidVersion = Build.VERSION.SDK_INT;
+		
+		Log.d("Version: ", "El numero dde version es: "+androidVersion);
+		
+		if(androidVersion < Build.VERSION_CODES.ICE_CREAM_SANDWICH){
+			dialog = new Dialog(PantallaPrincipal.this, R.style.Theme_Base_AppCompat_Dialog_Light_FixedSize);
+		}else{
+			dialog = new Dialog(PantallaPrincipal.this);
+		}
+		
 		dialog.setContentView(R.layout.dialogo_pasaje);
 		dialog.setTitle("Aceptar Pasaje");
  
@@ -363,8 +398,8 @@ public class PantallaPrincipal extends ActionBarActivity{
  
 			Button btnSi = (Button) dialog.findViewById(R.id.btn_dialog_si);
 			Button btnNo = (Button) dialog.findViewById(R.id.btn_dialog_no);
+	
 			
-			// if button is clicked, close the custom dialog
 			btnSi.setOnClickListener(new OnClickListener() {
 			
 				@Override
@@ -375,6 +410,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 					txtHora = (TextView) findViewById(R.id.txtHoraSolicitado);
 					txtCronometro = (TextView) findViewById(R.id.cronometro);
 					spinnerEstados = (Spinner) findViewById(R.id.spinnerEstados);
+					
 					if(conInternet()){
 						tn.execute("asignado","si");
 					}
@@ -398,6 +434,7 @@ public class PantallaPrincipal extends ActionBarActivity{
  
 			dialog.show();
 	}
+	
 	
 	
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
@@ -446,7 +483,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 			if(args[1].equals("si")){
 				esAceptado = true;
 			}
-			respuesta=ws.notificarEstadoPasajeEnCurso(pasaje.getId(), args[0]);	
+			respuesta=ws.notificarEstadoPasajeEnCurso(pasaje.getId(), args[0], getUsuario().getUsuario());	
 			
 			return 1;
 		}
@@ -528,10 +565,11 @@ public class PantallaPrincipal extends ActionBarActivity{
 	public Usuario getUsuario() {
 		return usuario;
 	}
-
-	public void setUsuario(Usuario usuario) {
-		this.usuario = usuario;
+	
+	public static void setEstadoUsuario(Estados e){
+		usuario.setEstado(e);
 	}
+	
 	
 		
 }

@@ -1,6 +1,8 @@
 package controladores;
 
 
+import interfaz.InicioSesion;
+
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 
@@ -14,7 +16,7 @@ public class GcmIntentService extends IntentService{
 	        "NUEVO_PASAJE";
 
     public GcmIntentService() {
-        super("GcmIntentService");
+        super(InicioSesion.SENDER_ID);
   
     }
 
@@ -27,6 +29,7 @@ public class GcmIntentService extends IntentService{
         String messageType = gcm.getMessageType(intent);
 
         if (!extras.isEmpty()) {  // has effect of unparcelling Bundle
+        	
             /*
              * Filter messages based on message type. Since it is likely that GCM
              * will be extended in the future with new message types, just ignore
@@ -42,7 +45,7 @@ public class GcmIntentService extends IntentService{
             // If it's a regular GCM message, do some work.
             } else if (GoogleCloudMessaging.
                     MESSAGE_TYPE_MESSAGE.equals(messageType)) {
-            			
+            			Log.d("Datos intent GCM", extras.getString("cliente")+"-"+extras.getString("direccion"));
                 		//Comunicamos los datos del pasaje
                         Intent bcIntent = new Intent();
                    

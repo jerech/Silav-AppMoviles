@@ -68,15 +68,16 @@ public class InicioSesion extends Activity{
 	//private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 	public static final String EXTRA_MESSAGE = "message";
 	private static final String PROPERTY_REG_ID = "registration_id";
-	private static final String PROPERTY_APP_VERSION = "appVersion";
+	public static final String PROPERTY_APP_VERSION = "appVersion";
 	private static final String PROPERTY_EXPIRATION_TIME = "onServerExpirationTimeMs";
 	public static final String PROPERTY_USER = "usuario";
 	public static final String NOMBRE_SHARED_PREFERENCE = "ConfiguracionInicial";
 	public static final long EXPIRATION_TIME_MS = 1000 * 3600 * 24 * 7;
-	String SENDER_ID = "63779176750";//numero de proyecto en la cuenta de google console
+	public static String SENDER_ID = "63779176750";//numero de proyecto en la cuenta de google console
 	static final String TAG = "GCM Silav";
 	private String regid;
 	private GoogleCloudMessaging gcm;
+	private SharedPreferences pref;
 	
 	public InicioSesion(){
 	}
@@ -101,7 +102,7 @@ public class InicioSesion extends Activity{
 		}
 		
 		//Se obtiene el numero de remis desde las preferencias de la app
-		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+		pref = PreferenceManager.getDefaultSharedPreferences(this);
 		int num = Integer.parseInt(pref.getString("remis", "0"));
 		
 		//Se obtiene nombre o ip se sitio con la preferencias de la app
@@ -118,6 +119,13 @@ public class InicioSesion extends Activity{
 		getBtnIniciar().setOnClickListener(listenerClick);	
 		
 	}//fin del método OnCreate
+	
+	@Override
+	public void onResume(){
+		super.onResume();
+		
+		
+	}//fin metodo onResume
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){

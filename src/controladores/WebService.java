@@ -8,6 +8,8 @@ import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 
+import android.util.Log;
+
 import constantes.ConstantesWebService;
 
 import modelo.Movil;
@@ -21,9 +23,11 @@ public boolean loginUsuario(Usuario usuario){
 	//Se crea un objeto de tipo soap.
 	SoapObject rpc;
 	rpc = new SoapObject(ConstantesWebService.NAME_SPACE, "login");
+	String contraseniaEncriptada = HexMd5.hash(usuario.getContrasenia());
+	Log.d("Pass encriptado", contraseniaEncriptada);
 	
 	rpc.addProperty("usuario", usuario.getUsuario());
-	rpc.addProperty("contrasenia", usuario.getContrasenia());
+	rpc.addProperty("contrasenia", contraseniaEncriptada);
 	SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
 	envelope.bodyOut=rpc;
 	
@@ -60,9 +64,10 @@ public boolean conectarUsuario(Usuario usuario){
 		//Se crea un objeto de tipo soap.
 		SoapObject rpc;
 		rpc = new SoapObject(ConstantesWebService.NAME_SPACE, "conectarChofer");
+		String contraseniaEncriptada = HexMd5.hash(usuario.getContrasenia());
 		
 		rpc.addProperty("usuario", usuario.getUsuario());
-		rpc.addProperty("contrasenia", usuario.getContrasenia());
+		rpc.addProperty("contrasenia", contraseniaEncriptada);
 		rpc.addProperty("num_movil", usuario.getMovil().getNumero());
 		rpc.addProperty("estado",usuario.getEstado().toString());
 		SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
@@ -138,8 +143,9 @@ public boolean conectarUsuario(Usuario usuario){
 			rpc = new SoapObject(ConstantesWebService.NAME_SPACE, "actualizarUbicacion");
 			
 			rpc.addProperty("usuario", usuario.getUsuario());
-			rpc.addProperty("ulatitud", Double.toString(usuario.getUbicacionLatitud()));
-			rpc.addProperty("ulongitud", Double.toString(usuario.getUbicacionLongitud()));
+			rpc.addProperty("ulatitud", usuario.getUbicacionLatitud()+"");
+			rpc.addProperty("ulongitud", usuario.getUbicacionLongitud()+"");
+			rpc.addProperty("estado", usuario.getEstado().toString());
 			
 			SoapSerializationEnvelope env = new SoapSerializationEnvelope(SoapEnvelope.VER11);
 			env.bodyOut=rpc;
@@ -159,6 +165,7 @@ public boolean conectarUsuario(Usuario usuario){
 		
 				//guardar la respuesta en una variable
 				respuesta=(Boolean) env.getResponse();
+				Log.d("Respuesta Act Ubicacion", respuesta+"");
 				
 				}catch(Exception e){
 					System.out.println(e.getMessage());
@@ -337,7 +344,7 @@ public boolean conectarUsuario(Usuario usuario){
 			return respuesta;
 	    }
 	    
-	    public boolean notificarEstadoPasajeEnCurso(int idPasaje, String estado){
+	    public boolean notificarEstadoPasajeEnCurso(int idPasaje, String estado, String usuario){
 			boolean respuesta=false;
 			final String nombreFuncion = "notificarEstadoPasajeEnCurso";
 			SoapObject rpc;
@@ -345,6 +352,7 @@ public boolean conectarUsuario(Usuario usuario){
 			
 			rpc.addProperty("idPasaje", idPasaje);
 			rpc.addProperty("estado", estado);
+			rpc.addProperty("usuario", usuario);
 		
 			SoapSerializationEnvelope env = new SoapSerializationEnvelope(SoapEnvelope.VER11);
 			env.bodyOut=rpc;
