@@ -168,7 +168,7 @@ public boolean conectarUsuario(Usuario usuario){
 				Log.d("Respuesta Act Ubicacion", respuesta+"");
 				
 				}catch(Exception e){
-					System.out.println(e.getMessage());
+					e.printStackTrace();
 					respuesta=false;
 				}
 			

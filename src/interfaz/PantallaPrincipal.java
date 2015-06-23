@@ -377,7 +377,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 		
 		int androidVersion = Build.VERSION.SDK_INT;
 		
-		Log.d("Version: ", "El numero dde version es: "+androidVersion);
+		Log.d("Version: ", "El numero de version es: "+androidVersion);
 		
 		if(androidVersion < Build.VERSION_CODES.ICE_CREAM_SANDWICH){
 			dialog = new Dialog(PantallaPrincipal.this, R.style.Theme_Base_AppCompat_Dialog_Light_FixedSize);

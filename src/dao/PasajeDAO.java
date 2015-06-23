@@ -83,7 +83,7 @@ public class PasajeDAO extends DBHelper{
 	}
 	
 	public Pasaje obtenerPasaje() {
-		String selectQuery = "SELECT * FROM " + TABLA;
+		String selectQuery = "SELECT * FROM " + TABLA + " order by "+ ID +" desc";
 		abrirDB();
 		Cursor cursor = mDB.rawQuery(selectQuery, null);
 		Pasaje pasaje=new Pasaje();
