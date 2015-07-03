@@ -89,17 +89,16 @@ public class PantallaPrincipal extends ActionBarActivity{
 	private boolean isDoInBackground;
 	private boolean notificacionCorriendo = false;
 	private Timer timer;
+	protected ActionBar actionBar;
 	
 
 	@Override
 	public void onCreate(Bundle savedIntanceState){
 		super.onCreate(savedIntanceState);
 	
-		ActionBar actionBar = getSupportActionBar();
+		actionBar = getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		pasaje = new Pasaje();
-		//TareaAsincronaNotificacion n = new TareaAsincronaNotificacion();
-		//n.execute("");
 		
 		Movil movil = new Movil();
 		usuario = new Usuario(Estados.LIBRE);
@@ -361,6 +360,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 	}
 	
 	private void mostrarMensajePasaje(String direccion, String cliente, int id, String fecha){
+		actionBar.setSelectedNavigationItem(1);
 		
 		if(isDoInBackground == true){
 			TareaAsincronaNotificacion taNotificacion = new TareaAsincronaNotificacion();
@@ -489,6 +489,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 		}
 		
 		protected void onPostExecute(Object result){
+			
 			
 			if(respuesta && esAceptado){
 				PasajeDAO pasajeDao = new PasajeDAO(getApplicationContext());

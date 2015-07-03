@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -16,8 +17,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String DB_NAME = "appmoviles.db";
     public static final int DB_VERSION = 1;
     //The Android's default system path of your application database.
-    private static String DB_PATH = "/data/data/com.appmoviles/databases/";
-    private SQLiteDatabase myDataBase;
+    @SuppressLint("SdCardPath")
+	private static String DB_PATH = "/data/data/com.appmoviles/databases/";
     private final Context myContext;
     
     public DBHelper(Context context){

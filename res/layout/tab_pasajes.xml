@@ -28,6 +28,8 @@
       android:id="@+id/listaPasajes"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
+      android:fadeScrollbars="true"
+      android:scrollingCache="true"
       android:soundEffectsEnabled="true">
       
   </ListView>

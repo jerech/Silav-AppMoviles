@@ -51,6 +51,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -99,6 +100,7 @@ public class InicioSesion extends Activity{
 		String usuarioGuardado = prefs.getString(PROPERTY_USER, null);
 		if(usuarioGuardado != null && !usuarioGuardado.equals("")){
 			getEditTxtUsuario().setText(usuarioGuardado);
+			getEditTxtPass().requestFocus();
 		}
 		
 		//Se obtiene el numero de remis desde las preferencias de la app

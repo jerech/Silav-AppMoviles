@@ -115,7 +115,7 @@ public class PasajeDAO extends DBHelper{
 	
 	public List<Pasaje> obtenerPasajes(){
 		 abrirDB();
-		  Cursor c = mDB.rawQuery("SELECT * FROM "+TABLA, null);
+		  Cursor c = mDB.rawQuery("SELECT * FROM "+TABLA + " order by "+ FECHA +" desc", null);
 		  List<Pasaje> pasajes = new ArrayList<Pasaje>();
 		  c.moveToFirst();
 		  for(int i=0; i<c.getCount(); i++){
