@@ -26,6 +26,7 @@ public class Configuracion extends PreferenceActivity{
 	ListPreference listPref;
 	EditTextPreference textEdit;
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -55,7 +56,7 @@ public class Configuracion extends PreferenceActivity{
 			public boolean onPreferenceChange(Preference preference, Object newValue) {
 				ConstantesWebService.URL = "http://"+newValue.toString()+"/WebService/servicio.php".trim();
 				ConstantesWebService.NAME_SPACE = "http://"+newValue.toString()+"/WebService".trim();
-				Log.d("Acambiado una prefeencia", newValue.toString());
+				Log.d("A cambiado una preferencia", newValue.toString());
 				return true;
 			}
 		});

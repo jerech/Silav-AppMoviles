@@ -48,6 +48,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -72,6 +73,8 @@ import android.widget.Toast;
 
 public class PantallaPrincipal extends ActionBarActivity{
 
+	public static final String PASAJE_PENDIENTE_RESPUESTA = "pasaje_pendiente_respuesta";
+	public static final String NOMBRE_SHARED_PREFERENCE = "preferencias_principal";
 	private Tab tabMovil;
 	private Tab tabMapa;
 	private Tab tabPasajes;
@@ -90,7 +93,9 @@ public class PantallaPrincipal extends ActionBarActivity{
 	private boolean notificacionCorriendo = false;
 	private Timer timer;
 	protected ActionBar actionBar;
-	
+	protected SharedPreferences prefs;
+	protected SharedPreferences prefsPrincipal;
+	MediaPlayer mp;
 
 	@Override
 	public void onCreate(Bundle savedIntanceState){
@@ -102,16 +107,21 @@ public class PantallaPrincipal extends ActionBarActivity{
 		
 		Movil movil = new Movil();
 		usuario = new Usuario(Estados.LIBRE);
+		getUsuario().setUbicacionLatitud(0.1);
+		getUsuario().setUbicacionLongitud(0.1);
 		getUsuario().setMovil(movil);
+	
 		
 		Bundle extras = getIntent().getExtras();
 		if(extras!=null){
 		    getUsuario().getMovil().setNumero(extras.getInt("numeroMovil"));	    
 		}		
-		SharedPreferences pref = getSharedPreferences(
+		prefs = getSharedPreferences(
 				InicioSesion.NOMBRE_SHARED_PREFERENCE,
 				Context.MODE_PRIVATE);
-		String usuarioGuardado = pref.getString(InicioSesion.PROPERTY_USER, "none");
+		prefsPrincipal = getSharedPreferences(PantallaPrincipal.NOMBRE_SHARED_PREFERENCE, Context.MODE_PRIVATE);
+		
+		String usuarioGuardado = prefs.getString(InicioSesion.PROPERTY_USER, "none");
 		getUsuario().setUsuario(usuarioGuardado);
 		
 		
@@ -361,6 +371,10 @@ public class PantallaPrincipal extends ActionBarActivity{
 	
 	private void mostrarMensajePasaje(String direccion, String cliente, int id, String fecha){
 		actionBar.setSelectedNavigationItem(1);
+		mp = MediaPlayer.create(this, R.raw.alarma_pasaje);
+		mp.setVolume((float)1, (float)1);
+		mp.start();
+		
 		
 		if(isDoInBackground == true){
 			TareaAsincronaNotificacion taNotificacion = new TareaAsincronaNotificacion();
@@ -401,9 +415,11 @@ public class PantallaPrincipal extends ActionBarActivity{
 	
 			
 			btnSi.setOnClickListener(new OnClickListener() {
-			
+				
+				
 				@Override
 				public void onClick(View arg0) {
+					mp.stop();
 					TareaAsincronaNotificarEstadoPasaje tn = new TareaAsincronaNotificarEstadoPasaje();
 					txtDireccion = (TextView) findViewById(R.id.txtDireccion);
 					txtCliente = (TextView) findViewById(R.id.txtCliente);
@@ -411,8 +427,33 @@ public class PantallaPrincipal extends ActionBarActivity{
 					txtCronometro = (TextView) findViewById(R.id.cronometro);
 					spinnerEstados = (Spinner) findViewById(R.id.spinnerEstados);
 					
+					PasajeDAO pasajeDao = new PasajeDAO(getApplicationContext());
+					pasajeDao.nuevo(pasaje);
+					
+					txtDireccion.setText(pasaje.getDireccion());
+					TabMovil.direccionPasaje = pasaje.getDireccion();
+					
+					txtCliente.setText(pasaje.getCliente());
+					TabMovil.clientePasaje = pasaje.getCliente();
+					
+					String hora = pasaje.getFecha().split(" ")[1];		
+					txtHora.setText(hora);
+					TabMovil.horaPasaje = hora;
+						
+					spinnerEstados.setSelection(1);
+					spinnerEstados.setEnabled(false);
+				
+					txtCronometro = (TextView) findViewById(R.id.cronometro);
+					txtCronometro.setText("00:10:00");
+					final CounterClass timer = new CounterClass(600000,1000); 
+					timer.start();
+					
+					TimerEnviarUbicacion.estadoPasajePendienteRespuesta = "asignado";
 					if(conInternet()){
 						tn.execute("asignado","si");
+					}else{
+						Log.d("Guardo el id", "Se guarda el id de pasaje pendiente respuesta");
+						TimerEnviarUbicacion.idPasajePendienteRespuesta = pasaje.getId();
 					}
 					dialog.dismiss();
 				}
@@ -423,9 +464,15 @@ public class PantallaPrincipal extends ActionBarActivity{
 				
 				@Override
 				public void onClick(View v) {
+					mp.stop();
 					TareaAsincronaNotificarEstadoPasaje tn = new TareaAsincronaNotificarEstadoPasaje();
+					TimerEnviarUbicacion.estadoPasajePendienteRespuesta = "rechazado";
 					if(conInternet()){
 						tn.execute("rechazado","no");
+						
+					}else{			
+						Log.d("Guardo el id", "Se guarda el id de pasaje pendiente respuesta: "+TimerEnviarUbicacion.estadoPasajePendienteRespuesta);
+						TimerEnviarUbicacion.idPasajePendienteRespuesta = pasaje.getId();
 					}
 					dialog.dismiss();
 					
@@ -484,6 +531,11 @@ public class PantallaPrincipal extends ActionBarActivity{
 				esAceptado = true;
 			}
 			respuesta=ws.notificarEstadoPasajeEnCurso(pasaje.getId(), args[0], getUsuario().getUsuario());	
+			if(respuesta == false){
+				TimerEnviarUbicacion.idPasajePendienteRespuesta = pasaje.getId();
+			}else{
+				TimerEnviarUbicacion.idPasajePendienteRespuesta = 0;
+			}
 			
 			return 1;
 		}
@@ -492,26 +544,7 @@ public class PantallaPrincipal extends ActionBarActivity{
 			
 			
 			if(respuesta && esAceptado){
-				PasajeDAO pasajeDao = new PasajeDAO(getApplicationContext());
-				pasajeDao.nuevo(pasaje);
-				
-				txtDireccion.setText(pasaje.getDireccion());
-				TabMovil.direccionPasaje = pasaje.getDireccion();
-				
-				txtCliente.setText(pasaje.getCliente());
-				TabMovil.clientePasaje = pasaje.getCliente();
-				
-				String hora = pasaje.getFecha().split(" ")[1];		
-				txtHora.setText(hora);
-				TabMovil.horaPasaje = hora;
-					
-				spinnerEstados.setSelection(1);
-				spinnerEstados.setEnabled(false);
-			
-				txtCronometro = (TextView) findViewById(R.id.cronometro);
-				txtCronometro.setText("00:03:00");
-				final CounterClass timer = new CounterClass(180000,1000); 
-				timer.start();
+				Toast.makeText(getApplicationContext(), "El pasaje fue aceptado", Toast.LENGTH_LONG).show();
 			}else{
 				Toast.makeText(getApplicationContext(), "El pasaje fue cancelado", Toast.LENGTH_LONG).show();
 			}

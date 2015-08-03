@@ -51,7 +51,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -64,6 +63,7 @@ public class InicioSesion extends Activity{
 	private Button btnIniciar;
 	private Context context;
 	private Usuario usuario;
+	private Movil movil;
 	
 	//Variables para implemetar GCM
 	//private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -72,6 +72,7 @@ public class InicioSesion extends Activity{
 	public static final String PROPERTY_APP_VERSION = "appVersion";
 	private static final String PROPERTY_EXPIRATION_TIME = "onServerExpirationTimeMs";
 	public static final String PROPERTY_USER = "usuario";
+	public static final String PROPERTY_PASSWORD = "password";
 	public static final String NOMBRE_SHARED_PREFERENCE = "ConfiguracionInicial";
 	public static final long EXPIRATION_TIME_MS = 1000 * 3600 * 24 * 7;
 	public static String SENDER_ID = "63779176750";//numero de proyecto en la cuenta de google console
@@ -98,8 +99,10 @@ public class InicioSesion extends Activity{
 				NOMBRE_SHARED_PREFERENCE,
 				Context.MODE_PRIVATE);
 		String usuarioGuardado = prefs.getString(PROPERTY_USER, null);
+		String passwordGuardada = prefs.getString(PROPERTY_PASSWORD, "");
 		if(usuarioGuardado != null && !usuarioGuardado.equals("")){
 			getEditTxtUsuario().setText(usuarioGuardado);
+			getEditTxtPass().setText(passwordGuardada);
 			getEditTxtPass().requestFocus();
 		}
 		
@@ -112,10 +115,12 @@ public class InicioSesion extends Activity{
 		ConstantesWebService.URL = "http://"+sitio+"/WebService/servicio.php".trim();
 		ConstantesWebService.NAME_SPACE = "http://"+sitio+"/WebService".trim();
 		
-	
-		Movil movil = new Movil(num);
 		usuario = new Usuario(Estados.LIBRE);
-		getUsuario().setMovil(movil);
+		if(num != 0){
+			movil = new Movil(num);		
+			getUsuario().setMovil(movil);
+		}
+		
 		
 		ListenerClick listenerClick = new ListenerClick();
 		getBtnIniciar().setOnClickListener(listenerClick);	
@@ -247,9 +252,18 @@ public class InicioSesion extends Activity{
 			MovilDAO movilDAO = new MovilDAO(this);
 			movilDAO.borrarTodosLosMoviles();
 			Iterator< Movil> i=listaMoviles.iterator();
+			
+			
 			while(i.hasNext()){
 				Movil m = i.next();
 				movilDAO.nuevo(m.getNumero(),m.getMarca(),m.getModelo());
+				if(movil == null){
+					movil = new Movil(m.getNumero());
+					getUsuario().setMovil(movil);
+					//Falta setear el numero de movil en las preferencias
+					//ListPreference lp = prfindPreference("remis") ;
+				}
+				
 			}
 	
 		}		
@@ -321,6 +335,7 @@ public class InicioSesion extends Activity{
 			return "";
 		}
 		String registeredUser = prefs.getString(PROPERTY_USER, "user");
+		String registeredPassword = prefs.getString(PROPERTY_PASSWORD, "pass");
 		int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
 		long expirationTime = prefs.getLong(PROPERTY_EXPIRATION_TIME, -1);
 		
@@ -341,6 +356,9 @@ public class InicioSesion extends Activity{
 		}
 		else if (!getUsuario().getUsuario().equals(registeredUser)){
 			Log.d(TAG, "Nuevo nombre de usuario.");
+			return "";
+		}
+		else if (!getUsuario().getContrasenia().equals(registeredPassword)) {
 			return "";
 		}
 		return registrationId;
@@ -367,6 +385,7 @@ public class InicioSesion extends Activity{
 	 
 	    SharedPreferences.Editor editor = prefs.edit();
 	    editor.putString(PROPERTY_USER, user);
+	    editor.putString(PROPERTY_PASSWORD, getEditTxtPass().getText().toString());
 	    editor.putString(PROPERTY_REG_ID, regId);
 	    editor.putInt(PROPERTY_APP_VERSION, appVersion);
 	    editor.putLong(PROPERTY_EXPIRATION_TIME,

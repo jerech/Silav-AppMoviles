@@ -5,7 +5,16 @@ public class Pasaje {
 	private String direccion;
 	private String cliente;
 	private String fecha;
+	private String estado;
 		
+	public String getEstado() {
+		return estado;
+	}
+
+	public void setEstado(String estado) {
+		this.estado = estado;
+	}
+
 	public Pasaje(){
 		
 	}
